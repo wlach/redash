@@ -10,4 +10,4 @@ upstream project.
 
 ## License
 
-See [LICENSE](https://github.com/getredash/redash/blob/master/LICENSE) file.
+BSD-2-Clause.

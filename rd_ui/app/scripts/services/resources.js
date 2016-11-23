@@ -446,6 +446,20 @@
           method: 'get',
           isArray: true,
           url: "api/queries/recent"
+        },
+        query: {
+          isArray: false
+        },
+        myQueries: {
+          method: 'get',
+          isArray: false,
+          url: "api/queries/my"
+        },
+        fork: {
+          method: 'post',
+          isArray: false,
+          url: "api/queries/:id/fork",
+          params: {id: '@id'}
         }
       });
 
@@ -670,6 +684,7 @@
     var actions = {
       'get': {'method': 'GET', 'cache': false, 'isArray': false},
       'query': {'method': 'GET', 'cache': false, 'isArray': true},
+      'test': {'method': 'POST', 'cache': false, 'isArray': false, 'url': 'api/data_sources/:id/test'},
       'getSchema': {'method': 'GET', 'cache': true, 'isArray': true, 'url': 'api/data_sources/:id/schema'}
     };
 
@@ -769,7 +784,7 @@
         "tabTrigger": this.trigger
       };
     }
-    
+
     return resource;
   };
 

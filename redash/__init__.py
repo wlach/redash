@@ -7,21 +7,15 @@ from werkzeug.contrib.fixers import ProxyFix
 from werkzeug.routing import BaseConverter, ValidationError
 from statsd import StatsClient
 from flask_mail import Mail
+from flask_limiter import Limiter
+from flask_limiter.util import get_ipaddr
 
 from redash import settings
 from redash.query_runner import import_query_runners
 from redash.destinations import import_destinations
 
 
-__version__ = '0.12.0'
-
-
-if settings.FEATURE_TABLES_PERMISSIONS:
-    # TODO(@arikfr): remove this warning on next version release
-    print "You have table based permissions enabled, but this feature was removed."
-    print "Please use new data sources based permission model."
-    print "(re:dash won't load until you turn off this feature)"
-    exit(1)
+__version__ = '1.0.0'
 
 
 def setup_logging():
@@ -60,6 +54,7 @@ redis_connection = create_redis_connection()
 mail = Mail()
 mail.init_mail(settings.all_settings())
 statsd_client = StatsClient(host=settings.STATSD_HOST, port=settings.STATSD_PORT, prefix=settings.STATSD_PREFIX)
+limiter = Limiter(key_func=get_ipaddr, storage_uri=settings.REDIS_URL)
 
 import_query_runners(settings.QUERY_RUNNERS)
 import_destinations(settings.DESTINATIONS)
@@ -120,5 +115,6 @@ def create_app():
     mail.init_app(app)
     setup_authentication(app)
     handlers.init_app(app)
+    limiter.init_app(app)
 
     return app

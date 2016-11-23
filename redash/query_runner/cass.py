@@ -1,19 +1,22 @@
 import json
-import sys
 import logging
 
-from redash.query_runner import *
+from redash.query_runner import BaseQueryRunner, register
 from redash.utils import JSONEncoder
 
 logger = logging.getLogger(__name__)
 
 try:
-    from cassandra.cluster import Cluster
+    from cassandra.cluster import Cluster, Error
+    from cassandra.auth import PlainTextAuthProvider
     enabled = True
 except ImportError:
     enabled = False
 
+
 class Cassandra(BaseQueryRunner):
+    noop_query = "SELECT * FROM system"
+
     @classmethod
     def enabled(cls):
         return enabled
@@ -55,15 +58,13 @@ class Cassandra(BaseQueryRunner):
         select columnfamily_name from system.schema_columnfamilies where keyspace_name = '{}';
         """.format(self.configuration['keyspace'])
 
-        results = self.run_query(query)
+        results, error = self.run_query(query, None)
         return results, error
 
-    def run_query(self, query):
-        from cassandra.cluster import Cluster
+    def run_query(self, query, user):
         connection = None
         try:
             if self.configuration.get('username', '') and self.configuration.get('password', ''):
-                from cassandra.auth import PlainTextAuthProvider
                 auth_provider = PlainTextAuthProvider(username='{}'.format(self.configuration.get('username', '')),
                                                       password='{}'.format(self.configuration.get('password', '')))
                 connection = Cluster([self.configuration.get('host', '')], auth_provider=auth_provider)
@@ -84,22 +85,22 @@ class Cassandra(BaseQueryRunner):
             json_data = json.dumps(data, cls=JSONEncoder)
 
             error = None
-
-        except cassandra.cluster.Error, e:
+        except Error as e:
             error = e.args[1]
         except KeyboardInterrupt:
             error = "Query cancelled by user."
 
         return json_data, error
 
-class ScyllaDB(Cassandra):
 
+class ScyllaDB(Cassandra):
     def __init__(self, configuration):
         super(ScyllaDB, self).__init__(configuration)
 
     @classmethod
     def type(cls):
         return "scylla"
+
 
 register(Cassandra)
 register(ScyllaDB)

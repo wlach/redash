@@ -1,6 +1,7 @@
 from tests import BaseTestCase
 import mock
 import time
+from redash import settings
 from redash.models import User
 from redash.authentication.account import invite_token
 from tests.handlers import get_request, post_request
@@ -52,6 +53,16 @@ class TestInvitePost(BaseTestCase):
         password = 'test1234'
         response = post_request('/invite/{}'.format(token), data={'password': password}, org=self.factory.org)
         self.assertEqual(response.status_code, 302)
-        self.factory.user = User.get_by_id(self.factory.user.id)
-        self.assertTrue(self.factory.user.verify_password(password))
+        user = User.get_by_id(self.factory.user.id)
+        self.assertTrue(user.verify_password(password))
 
+
+class TestLogin(BaseTestCase):
+    def test_throttle_login(self):
+        # Extract the limit from settings (ex: '50/day')
+        limit = settings.THROTTLE_LOGIN_PATTERN.split('/')[0]
+        for _ in range(0, int(limit)):
+            get_request('/login', org=self.factory.org)
+
+        response = get_request('/login', org=self.factory.org)
+        self.assertEqual(response.status_code, 429)

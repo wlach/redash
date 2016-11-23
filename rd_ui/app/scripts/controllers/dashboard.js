@@ -13,6 +13,7 @@
     $scope.refreshEnabled = false;
     $scope.isFullscreen = false;
     $scope.refreshRate = 60;
+    $scope.showPermissionsControl = clientConfig.showPermissionsControl;
 
     var renderDashboard = function (dashboard) {
       $scope.$parent.pageTitle = dashboard.name;
@@ -114,7 +115,30 @@
           $scope.$parent.reloadDashboards();
         });
       }
-    }
+    };
+
+    $scope.showManagePermissionsModal = function() {
+        // Create scope for share permissions dialog and pass api path to it
+        var scope = $scope.$new();
+        $scope.apiAccess = 'api/dashboards/' + $scope.dashboard.id + '/acl';
+
+        $modal.open({
+          scope: scope,
+          templateUrl: '/views/dialogs/manage_permissions.html',
+          controller: 'ManagePermissionsCtrl'
+        });
+    };
+
+    $scope.togglePublished = function () {
+      Events.record(currentUser, "toggle_published", "dashboard", $scope.dashboard.id);
+      $scope.dashboard.is_draft = !$scope.dashboard.is_draft;
+      $scope.saveInProgress = true;
+      Dashboard.save({slug: $scope.dashboard.id, name: $scope.dashboard.name,
+                      layout: JSON.stringify($scope.dashboard.layout),
+                      is_draft: $scope.dashboard.is_draft},
+                     function() {$scope.saveInProgress = false;});
+
+    };
 
     $scope.toggleFullscreen = function() {
       $scope.isFullscreen = !$scope.isFullscreen;
@@ -188,7 +212,30 @@
     }
   };
 
-  var WidgetCtrl = function($scope, $location, Events, Query) {
+  var WidgetCtrl = function($scope, $location, Events, Query, $modal) {
+    $scope.editTextBox = function() {
+      $modal.open({
+        templateUrl: '/views/edit_text_box_form.html',
+        scope: $scope,
+        controller: ['$scope', '$modalInstance', 'growl', function($scope, $modalInstance, growl) {
+          $scope.close = function() {
+            $modalInstance.close();
+          };
+
+          $scope.saveWidget = function() {
+            $scope.saveInProgress = true;
+            $scope.widget.$save().then(function(response) {
+              $scope.close();
+            }).catch(function() {
+              growl.addErrorMessage("Widget can not be updated");
+            }).finally(function() {
+              $scope.saveInProgress = false;
+            });
+          };
+        }],
+      });
+    }
+
     $scope.deleteWidget = function() {
       if (!confirm('Are you sure you want to remove "' + $scope.widget.getName() + '" from the dashboard?')) {
         return;
@@ -206,6 +253,7 @@
         $scope.dashboard.widgets = _.filter($scope.dashboard.widgets, function(row) { return row.length > 0 });
 
         $scope.dashboard.layout = response.layout;
+        $scope.dashboard.version = response.version;
       });
     };
 
@@ -237,6 +285,6 @@
   angular.module('redash.controllers')
     .controller('DashboardCtrl', ['$scope', 'Events', 'Widget', '$routeParams', '$location', '$http', '$timeout', '$q', '$modal', 'Dashboard', DashboardCtrl])
     .controller('PublicDashboardCtrl', ['$scope', 'Events', 'Widget', '$routeParams', '$location', '$http', '$timeout', '$q', 'Dashboard', PublicDashboardCtrl])
-    .controller('WidgetCtrl', ['$scope', '$location', 'Events', 'Query', WidgetCtrl])
+    .controller('WidgetCtrl', ['$scope', '$location', 'Events', 'Query', '$modal', WidgetCtrl])
 
 })();

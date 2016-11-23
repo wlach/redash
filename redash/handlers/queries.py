@@ -6,10 +6,11 @@ import sqlparse
 from funcy import distinct, take
 from itertools import chain
 
-from redash.handlers.base import routes, org_scoped_rule
+from redash.handlers.base import routes, org_scoped_rule, paginate
 from redash.handlers.query_results import run_query
 from redash import models
-from redash.permissions import require_permission, require_access, require_admin_or_owner, not_view_only, view_only
+from redash.permissions import require_permission, require_access, require_admin_or_owner, not_view_only, view_only, \
+    require_object_modify_permission, can_modify
 from redash.handlers.base import BaseResource, get_object_or_404
 from redash.utils import collect_parameters_from_request
 
@@ -28,7 +29,7 @@ class QuerySearchResource(BaseResource):
     def get(self):
         term = request.args.get('q', '')
 
-        return [q.to_dict() for q in models.Query.search(term, self.current_user.groups)]
+        return [q.to_dict(with_last_modified_by=False) for q in models.Query.search(term, self.current_user.groups)]
 
 
 class QueryRecentResource(BaseResource):
@@ -61,6 +62,7 @@ class QueryListResource(BaseResource):
         query_def['user'] = self.current_user
         query_def['data_source'] = data_source
         query_def['org'] = self.current_org
+        query_def['is_draft'] = True
         query = models.Query.create(**query_def)
 
         self.record_event({
@@ -73,16 +75,30 @@ class QueryListResource(BaseResource):
 
     @require_permission('view_query')
     def get(self):
-        return [q.to_dict(with_stats=True) for q in models.Query.all_queries(self.current_user.groups)]
+        results = models.Query.all_queries(self.current_user.groups)
+        page = request.args.get('page', 1, type=int)
+        page_size = request.args.get('page_size', 25, type=int)
+        return paginate(results, page, page_size, lambda q: q.to_dict(with_stats=True, with_last_modified_by=False))
+
+
+class MyQueriesResource(BaseResource):
+    @require_permission('view_query')
+    def get(self):
+        drafts = request.args.get('drafts') is not None
+        results = models.Query.by_user(self.current_user, drafts)
+        page = request.args.get('page', 1, type=int)
+        page_size = request.args.get('page_size', 25, type=int)
+        return paginate(results, page, page_size, lambda q: q.to_dict(with_stats=True, with_last_modified_by=False))
 
 
 class QueryResource(BaseResource):
     @require_permission('edit_query')
     def post(self, query_id):
         query = get_object_or_404(models.Query.get_by_id_and_org, query_id, self.current_org)
-        require_admin_or_owner(query.user_id)
-
         query_def = request.get_json(force=True)
+
+        require_object_modify_permission(query, self.current_user)
+
         for field in ['id', 'created_at', 'api_key', 'visualizations', 'latest_query_data', 'user', 'last_modified_by', 'org']:
             query_def.pop(field, None)
 
@@ -93,26 +109,42 @@ class QueryResource(BaseResource):
             query_def['data_source'] = query_def.pop('data_source_id')
 
         query_def['last_modified_by'] = self.current_user
+        query_def['changed_by'] = self.current_user
 
-        query.update_instance(**query_def)
+        try:
+            query.update_instance(**query_def)
+        except models.ConflictDetectedError:
+            abort(409)
 
-        return query.to_dict(with_visualizations=True)
+        # old_query = copy.deepcopy(query.to_dict())
+        # new_change = query.update_instance_tracked(changing_user=self.current_user, old_object=old_query, **query_def)
+        # abort(409) # HTTP 'Conflict' status code
+
+        result = query.to_dict(with_visualizations=True)
+        return result
 
     @require_permission('view_query')
     def get(self, query_id):
         q = get_object_or_404(models.Query.get_by_id_and_org, query_id, self.current_org)
         require_access(q.groups, self.current_user, view_only)
 
-        if q:
-            return q.to_dict(with_visualizations=True)
-        else:
-            abort(404, message="Query not found.")
+        result = q.to_dict(with_visualizations=True)
+        result['can_edit'] = can_modify(q, self.current_user)
+        return result
 
     # TODO: move to resource of its own? (POST /queries/{id}/archive)
     def delete(self, query_id):
         query = get_object_or_404(models.Query.get_by_id_and_org, query_id, self.current_org)
         require_admin_or_owner(query.user_id)
-        query.archive()
+        query.archive(self.current_user)
+
+
+class QueryForkResource(BaseResource):
+    @require_permission('edit_query')
+    def post(self, query_id):
+        query = get_object_or_404(models.Query.get_by_id_and_org, query_id, self.current_org)
+        forked_query = query.fork(self.current_user)
+        return forked_query.to_dict(with_visualizations=True)
 
 
 class QueryRefreshResource(BaseResource):

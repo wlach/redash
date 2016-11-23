@@ -4,6 +4,7 @@ import logging
 import sys
 
 from redash.query_runner import *
+from redash.utils import json_dumps
 from redash import models
 
 import importlib
@@ -153,7 +154,8 @@ class Python(BaseQueryRunner):
         except models.DataSource.DoesNotExist:
             raise Exception("Wrong data source name/id: %s." % data_source_name_or_id)
 
-        data, error = data_source.query_runner.run_query(query)
+        # TODO: pass the user here...
+        data, error = data_source.query_runner.run_query(query, None)
         if error is not None:
             raise Exception(error)
 
@@ -179,7 +181,10 @@ class Python(BaseQueryRunner):
 
         return json.loads(query.latest_query_data.data)
 
-    def run_query(self, query):
+    def test_connection(self):
+        pass
+
+    def run_query(self, query, user):
         try:
             error = None
 
@@ -224,12 +229,12 @@ class Python(BaseQueryRunner):
 
             result = self._script_locals['result']
             result['log'] = self._custom_print.lines
-            json_data = json.dumps(result)
+            json_data = json_dumps(result)
         except KeyboardInterrupt:
             error = "Query cancelled by user."
             json_data = None
         except Exception as e:
-            error = str(e)
+            error = str(type(e)) + " " + str(e)
             json_data = None
 
         return json_data, error

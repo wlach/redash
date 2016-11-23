@@ -57,8 +57,6 @@ class QueryTaskTracker(object):
         self.data['updated_at'] = time.time()
         key_name = self._key_name(self.data['task_id'])
         connection.set(key_name, utils.json_dumps(self.data))
-        connection.zadd('query_task_trackers', time.time(), key_name)
-
         connection.zadd(self._get_list(), time.time(), key_name)
 
         for l in self.ALL_LISTS:
@@ -200,7 +198,7 @@ class QueryTask(object):
         return self._async_result.revoke(terminate=True, signal='SIGINT')
 
 
-def enqueue_query(query, data_source, scheduled=False, metadata={}):
+def enqueue_query(query, data_source, user_id, scheduled=False, metadata={}):
     query_hash = gen_query_hash(query)
     logging.info("Inserting job for %s with metadata=%s", query_hash, metadata)
     try_count = 0
@@ -231,7 +229,7 @@ def enqueue_query(query, data_source, scheduled=False, metadata={}):
                 else:
                     queue_name = data_source.queue_name
 
-                result = execute_query.apply_async(args=(query, data_source.id, metadata), queue=queue_name)
+                result = execute_query.apply_async(args=(query, data_source.id, metadata, user_id), queue=queue_name)
                 job = QueryTask(async_result=result)
                 tracker = QueryTaskTracker.create(result.id, 'created', query_hash, data_source.id, scheduled, metadata)
                 tracker.save(connection=pipe)
@@ -264,7 +262,7 @@ def refresh_queries():
             elif query.data_source.paused:
                 logging.info("Skipping refresh of %s because datasource - %s is paused (%s).", query.id, query.data_source.name, query.data_source.pause_reason)
             else:
-                enqueue_query(query.query, query.data_source,
+                enqueue_query(query.query, query.data_source, query.user_id,
                               scheduled=True,
                               metadata={'Query ID': query.id, 'Username': 'Scheduled'})
 
@@ -344,15 +342,29 @@ def refresh_schemas():
     """
     Refreshes the data sources schemas.
     """
+
+    blacklist = [int(ds_id) for ds_id in redis_connection.smembers('data_sources:schema:blacklist') if ds_id]
+
+    global_start_time = time.time()
+
+    logger.info(u"task=refresh_schemas state=start")
+
     for ds in models.DataSource.select():
         if ds.paused:
-            logger.info(u"Skipping refresh schema of %s because it is paused (%s).", ds.name, ds.pause_reason)
+            logger.info(u"task=refresh_schema state=skip ds_id=%s reason=paused(%s)", ds.id, ds.pause_reason)
+        elif ds.id in blacklist:
+            logger.info(u"task=refresh_schema state=skip ds_id=%s reason=blacklist", ds.id)
         else:
-            logger.info(u"Refreshing schema for: {}".format(ds.name))
+            logger.info(u"task=refresh_schema state=start ds_id=%s", ds.id)
+            start_time = time.time()
             try:
                 ds.get_schema(refresh=True)
+                logger.info(u"task=refresh_schema state=finished ds_id=%s runtime=%.2f", ds.id, time.time() - start_time)
             except Exception:
                 logger.exception(u"Failed refreshing schema for the data source: %s", ds.name)
+                logger.info(u"task=refresh_schema state=failed ds_id=%s runtime=%.2f", ds.id, time.time() - start_time)
+
+    logger.info(u"task=refresh_schemas state=finish total_runtime=%.2f", time.time() - global_start_time)
 
 
 def signal_handler(*args):
@@ -366,12 +378,16 @@ class QueryExecutionError(Exception):
 # We could have created this as a celery.Task derived class, and act as the task itself. But this might result in weird
 # issues as the task class created once per process, so decided to have a plain object instead.
 class QueryExecutor(object):
-    def __init__(self, task, query, data_source_id, metadata):
+    def __init__(self, task, query, data_source_id, user_id, metadata):
         self.task = task
         self.query = query
         self.data_source_id = data_source_id
         self.metadata = metadata
         self.data_source = self._load_data_source()
+        if user_id is not None:
+            self.user = models.User.get_by_id(user_id)
+        else:
+            self.user = None
         self.query_hash = gen_query_hash(self.query)
         # Load existing tracker or create a new one if the job was created before code update:
         self.tracker = QueryTaskTracker.get_by_task_id(task.request.id) or QueryTaskTracker.create(task.request.id,
@@ -389,7 +405,14 @@ class QueryExecutor(object):
 
         query_runner = self.data_source.query_runner
         annotated_query = self._annotate_query(query_runner)
-        data, error = query_runner.run_query(annotated_query)
+
+        try:
+            data, error = query_runner.run_query(annotated_query, self.user)
+        except Exception as e:
+            error = unicode(e)
+            data = None
+            logging.warning('Unexpected error while running query:', exc_info=1)
+
         run_time = time.time() - self.tracker.started_at
         self.tracker.update(error=error, run_time=run_time, state='saving_results')
 
@@ -437,6 +460,8 @@ class QueryExecutor(object):
         return models.DataSource.get_by_id(self.data_source_id)
 
 
+# user_id is added last as a keyword argument for backward compatability -- to support executing previously submitted
+# jobs before the upgrade to this version.
 @celery.task(name="redash.tasks.execute_query", bind=True, base=BaseTask, track_started=True)
-def execute_query(self, query, data_source_id, metadata):
-    return QueryExecutor(self, query, data_source_id, metadata).run()
+def execute_query(self, query, data_source_id, metadata, user_id=None):
+    return QueryExecutor(self, query, data_source_id, user_id, metadata).run()

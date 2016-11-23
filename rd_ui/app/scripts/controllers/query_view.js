@@ -1,7 +1,7 @@
 (function() {
   'use strict';
 
-  function QueryViewCtrl($scope, Events, $route, $location, notifications, growl, $modal, Query, DataSource) {
+  function QueryViewCtrl($scope, Events, $route, $routeParams, $http, $location, notifications, growl, $modal, Query, DataSource, User) {
     var DEFAULT_TAB = 'table';
 
     var getQueryResult = function(maxAge) {
@@ -66,6 +66,7 @@
 
     $scope.dataSource = {};
     $scope.query = $route.current.locals.query;
+    $scope.showPermissionsControl = clientConfig.showPermissionsControl;
 
     var updateSchema = function() {
       $scope.hasSchema = false;
@@ -129,8 +130,9 @@
           return;
         }
         data.id = $scope.query.id;
+        data.version = $scope.query.version;
       } else {
-        data = _.pick($scope.query, ["schedule", "query", "id", "description", "name", "data_source_id", "options", "latest_query_data_id"]);
+          data = _.pick($scope.query, ["schedule", "query", "id", "description", "name", "data_source_id", "options", "latest_query_data_id", "version", "is_draft"]);
       }
 
       options = _.extend({}, {
@@ -138,12 +140,26 @@
         errorMessage: 'Query could not be saved'
       }, options);
 
-      return Query.save(data, function() {
+      return Query.save(data, function(updatedQuery) {
+        growl.addSuccessMessage(options.successMessage);
+        $scope.query.version = updatedQuery.version;
+      }, function(error) {
+        if(error.status == 409) {
+          growl.addErrorMessage('It seems like the query has been modified by another user. ' +
+            'Please copy/backup your changes and reload this page.', {ttl: -1});
+        } else {
+          growl.addErrorMessage(options.errorMessage);
+        }
+      }).$promise;
+    };
+
+    $scope.forkQuery = function(options, data) {
+      return Query.fork({id:$scope.query.id}, function() {
         growl.addSuccessMessage(options.successMessage);
       }, function(httpResponse) {
         growl.addErrorMessage(options.errorMessage);
       }).$promise;
-    }
+    };
 
     $scope.saveDescription = function() {
       Events.record(currentUser, 'edit_description', 'query', $scope.query.id);
@@ -153,6 +169,12 @@
     $scope.saveName = function() {
       Events.record(currentUser, 'edit_name', 'query', $scope.query.id);
       $scope.saveQuery(undefined, {'name': $scope.query.name});
+    };
+
+    $scope.togglePublished = function() {
+      Events.record(currentUser, 'toggle_published', 'query', $scope.query.id);
+      $scope.query.is_draft = !$scope.query.is_draft;
+      $scope.saveQuery(undefined, {'is_draft': $scope.query.is_draft});
     };
 
     $scope.executeQuery = function() {
@@ -324,6 +346,9 @@
             $modalInstance.close();
           }
           $scope.embedUrl = basePath + 'embed/query/' + query.id + '/visualization/' + visualization.id + '?api_key=' + query.api_key;
+          if (window.snapshotUrlBuilder) {
+            $scope.snapshotUrl = snapshotUrlBuilder(query, visualization);
+          }
         }]
       })
     }
@@ -336,9 +361,19 @@
       }
       $scope.selectedTab = hash || DEFAULT_TAB;
     });
-  };
 
+    $scope.showManagePermissionsModal = function() {
+      // Create scope for share permissions dialog and pass api path to it
+      var scope = $scope.$new();
+      $scope.apiAccess = 'api/queries/' + $routeParams.queryId + '/acl';
+
+      $modal.open({
+        scope: scope,
+        templateUrl: '/views/dialogs/manage_permissions.html',
+        controller: 'ManagePermissionsCtrl'
+      })
+    };
+  };
   angular.module('redash.controllers')
-    .controller('QueryViewCtrl',
-      ['$scope', 'Events', '$route', '$location', 'notifications', 'growl', '$modal', 'Query', 'DataSource', QueryViewCtrl]);
+    .controller('QueryViewCtrl', ['$scope', 'Events', '$route', '$routeParams', '$http', '$location', 'notifications', 'growl', '$modal', 'Query', 'DataSource', 'User', QueryViewCtrl]);
 })();

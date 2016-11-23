@@ -129,6 +129,22 @@ class QueryRecentTest(BaseTestCase):
         self.assertIn(q1, recent)
         self.assertNotIn(q2, recent)
 
+    def test_recent_excludes_drafts(self):
+        q1 = self.factory.create_query()
+        q2 = self.factory.create_query(is_draft=True)
+
+        models.Event.create(org=self.factory.org, user=self.factory.user,
+                            action="edit", object_type="query",
+                            object_id=q1.id)
+        models.Event.create(org=self.factory.org, user=self.factory.user,
+                            action="edit", object_type="query",
+                            object_id=q2.id)
+
+        recent = models.Query.recent([self.factory.default_group])
+
+        self.assertIn(q1, recent)
+        self.assertNotIn(q2, recent)
+
     def test_recent_for_user(self):
         q1 = self.factory.create_query()
         q2 = self.factory.create_query()
@@ -251,12 +267,12 @@ class QueryArchiveTest(BaseTestCase):
         query.latest_query_data = query_result
         query.save()
 
-        self.assertIn(query, models.Query.all_queries(query.groups.keys()))
+        self.assertIn(query, list(models.Query.all_queries(query.groups.keys())))
         self.assertIn(query, models.Query.outdated_queries())
 
         query.archive()
 
-        self.assertNotIn(query, models.Query.all_queries(query.groups.keys()))
+        self.assertNotIn(query, list(models.Query.all_queries(query.groups.keys())))
         self.assertNotIn(query, models.Query.outdated_queries())
 
     def test_removes_associated_widgets_from_dashboards(self):
@@ -418,10 +434,10 @@ class TestQueryAll(BaseTestCase):
         q1 = self.factory.create_query(data_source=ds1)
         q2 = self.factory.create_query(data_source=ds2)
 
-        self.assertIn(q1, models.Query.all_queries([group1]))
-        self.assertNotIn(q2, models.Query.all_queries([group1]))
-        self.assertIn(q1, models.Query.all_queries([group1, group2]))
-        self.assertIn(q2, models.Query.all_queries([group1, group2]))
+        self.assertIn(q1, list(models.Query.all_queries([group1])))
+        self.assertNotIn(q2, list(models.Query.all_queries([group1])))
+        self.assertIn(q1, list(models.Query.all_queries([group1, group2])))
+        self.assertIn(q2, list(models.Query.all_queries([group1, group2])))
 
 
 class TestUser(BaseTestCase):
@@ -656,6 +672,16 @@ class TestDashboardRecent(BaseTestCase):
         self.assertIn(self.w1.dashboard, models.Dashboard.recent(self.u1.org, self.u1.groups, None))
         self.assertNotIn(self.w2.dashboard, models.Dashboard.recent(self.u1.org, self.u1.groups, None))
         self.assertNotIn(self.w1.dashboard, models.Dashboard.recent(self.u1.org, self.u2.groups, None))
+
+    def test_recent_excludes_drafts(self):
+        models.Event.create(org=self.factory.org, user=self.u1, action="view",
+                            object_type="dashboard", object_id=self.w1.dashboard.id)
+        models.Event.create(org=self.factory.org, user=self.u1, action="view",
+                            object_type="dashboard", object_id=self.w2.dashboard.id)
+
+        self.w2.dashboard.update_instance(is_draft=True)
+        self.assertIn(self.w1.dashboard, models.Dashboard.recent(self.u1.org, self.u1.groups, None))
+        self.assertNotIn(self.w2.dashboard, models.Dashboard.recent(self.u1.org, self.u1.groups, None))
 
     def test_returns_recent_dashboards_created_by_user(self):
         d1 = self.factory.create_dashboard(user=self.u1)
