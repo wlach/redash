@@ -1,6 +1,7 @@
 machine:
   services:
     - docker
+    - redis
   node:
     version:
       0.12.4
@@ -12,17 +13,16 @@ dependencies:
     - pip install -r requirements_dev.txt
     - pip install -r requirements.txt
     - pip install pymongo==3.2.1
-    - if [ "$CIRCLE_BRANCH" = "master" ]; then make deps; fi
+    - make deps
   cache_directories:
     - node_modules/
-    - rd_ui/node_modules/
     - rd_ui/app/bower_components/
 test:
   override:
     - nosetests --with-xunit --xunit-file=$CIRCLE_TEST_REPORTS/junit.xml --with-coverage --cover-package=redash tests/
 deployment:
   github_and_docker:
-    branch: master
+    branch: [master, /release_.*/]
     commands:
       - make pack
       - make upload

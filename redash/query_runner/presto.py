@@ -113,7 +113,11 @@ class Presto(BaseQueryRunner):
             data = {'columns': columns, 'rows': rows}
             json_data = json.dumps(data, cls=JSONEncoder)
             error = None
-        except Exception, ex:
+        except (KeyboardInterrupt, InterruptException) as e:
+            cursor.cancel()
+            error = "Query cancelled by user."
+            json_data = None
+        except Exception as ex:
             json_data = None
             error = ex.message
 
