@@ -797,7 +797,8 @@ class Query(ChangeTrackingMixin, TimestampMixin, BelongsToOrgMixin, db.Model):
         queries = (db.session.query(Query)
                    .join(QueryResult)
                    .join(DataSource)
-                   .filter(Query.schedule != None))
+                   .filter(Query.schedule != None)
+                   .order_by(Query.id))
 
         now = utils.utcnow()
         outdated_queries = {}
