@@ -269,6 +269,15 @@ function QueryViewCtrl(
     $location.hash(visualization.id);
   };
 
+  $scope.versions = {};
+  let versions = [];
+
+  $http.get(`/api/queries/${$scope.query.id}/version`).then((response) => {
+    versions = response.data.results;
+    // We don't need the last element of the returned versions.
+    $scope.versions = versions.slice(0, versions.length - 1);
+  });
+
   $scope.compareQueryVersion = () => {
     if (!$scope.query.query) {
       return;

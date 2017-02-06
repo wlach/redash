@@ -23,6 +23,7 @@ export default function (ngModule) {
   # switch to master's auto registration
   registerApiKeyDialog(ngModule);
   registerGetDataSourceVersion(ngModule);
+  registerCompareQueryDialog(ngModule);
 
   return Object.assign({}, registerQuerySearchResultsPage(ngModule),
                            registerSourceView(ngModule),
