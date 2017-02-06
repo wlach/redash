@@ -49,8 +49,8 @@
           <strong>{{query.last_modified_by.name}}</strong>
         </li>
         <li>
-          <i class="zmdi zmdi-time-restore"></i>
-          <span class="text-muted">Updated at </span>
+          <span class="zmdi zmdi-time-restore"></span>
+          <span class="text-muted">Updated at</span>
           <strong>
             <rd-time-ago value="query.updated_at"></rd-time-ago>
           </strong>
@@ -74,6 +74,7 @@
              ng-href="{{query.getUrl(false, selectedTab)}}" class="btn btn-default btn--showhide"><i class="fa fa-eye-slash" aria-hidden="true"></i> Hide Source</i>
           </a>
         </span>
+      </h3>
     </div>
   </div>
 
