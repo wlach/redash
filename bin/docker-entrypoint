@@ -6,7 +6,6 @@ set -e
 #
 # In most cases the host uid will be 1000...
 # This feels hackish, if anyone got a better solution I'll be happy to hear.
-usermod -u 1000 redash
 
 worker() {
   WORKERS_COUNT=${WORKERS_COUNT:-2}
