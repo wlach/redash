@@ -1,6 +1,6 @@
 <div class="schema-container">
   <div class="p-t-5 p-b-5">
-    <input type="text" placeholder="Search schema..." class="form-control" ng-model="schemaFilter">
+    <input type="text" placeholder="Search schema..." class="form-control" ng-model="schemaFilter" ng-model-options="{ debounce: 500 }">
   </div>
 
   <div class="schema-browser" vs-repeat vs-size="getSize(table)">
