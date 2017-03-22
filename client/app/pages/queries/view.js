@@ -256,6 +256,20 @@ function QueryViewCtrl($scope, Events, $route, $routeParams, $location, $window,
     $location.hash(visualization.id);
   };
 
+  $scope.compareQueryVersion = () => {
+    if (!$scope.query.query) {
+      return;
+    }
+
+    $uibModal.open({
+      windowClass: 'modal-xl',
+      component: 'compareQueryDialog',
+      resolve: {
+        query: $scope.query,
+      },
+    });
+  };
+
   $scope.$watch('query.name', () => {
     Title.set($scope.query.name);
   });
