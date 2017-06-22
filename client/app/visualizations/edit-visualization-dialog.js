@@ -29,7 +29,9 @@ const EditVisualizationDialog = {
         name: Visualization.defaultVisualization.name,
         description: '',
         options: Visualization.defaultVisualization.defaultOptions,
-      });
+      })
+    ;
+
     if (!this.visualization) {
       this.visualization = this.newVisualization();
     }
