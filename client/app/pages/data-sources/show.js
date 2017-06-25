@@ -57,7 +57,6 @@ function DataSourceCtrl(
 
     DataSource.version(
       { id: $scope.dataSource.id }, (httpResponse) => {
-        console.log(httpResponse);
         if (httpResponse.ok) {
           const versionNumber = httpResponse.message;
           toastr.success(`Success. Verison: ${versionNumber}`);
@@ -66,7 +65,6 @@ function DataSourceCtrl(
         }
         callback();
       }, (httpResponse) => {
-        console.log(httpResponse);
         logger('Failed to get data source version: ', httpResponse.status, httpResponse.statusText, httpResponse);
         toastr.error('Unknown error occurred while performing data source version test. Please try again later.', 'Data Source Version Test Failed:', { timeOut: 10000 });
         callback();

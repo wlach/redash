@@ -88,6 +88,7 @@
                   ng-options="ds.id as ds.name for ds in dataSources"></select>
           <a ng-if="dataSource.options.doc_url != ''" ng-href={{dataSource.options.doc_url}}>{{dataSource.type_name}} documentation</a>
           <span ng-if="dataSource.options.doc_url == ''">{{dataSource.type_name}}</span>
+          <get-data-source-version></get-data-source-version>
           <schema-browser class="schema-container"
                           schema="schema"
                           on-refresh="refreshSchema()"
@@ -106,7 +107,7 @@
                   <span class="fa fa-floppy-o"> </span> Save<span
                   ng-show="isDirty">&#42;</span>
                 </button>
-                <button type="button" class="btn btn-default btn-s" ng-click="formatQuery()">
+^                <button type="button" class="btn btn-default btn-s" ng-click="formatQuery()">
                   <span class="zmdi zmdi-format-indent-increase"></span> Format
                 </button>
 
