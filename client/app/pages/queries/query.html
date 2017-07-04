@@ -87,7 +87,7 @@
           <select id="data-source-selection" class="form-control m-b-10" ng-disabled="!isQueryOwner" ng-model="query.data_source_id" ng-change="updateDataSource()"
                   ng-options="ds.id as ds.name for ds in dataSources"></select>
           <a ng-if="dataSource.options.doc_url != ''" ng-href={{dataSource.options.doc_url}}>{{dataSource.type_name}} documentation</a>
-          <get-data-source-version></get-data-source-version>
+          <get-data-source-version id='data-source-version'></get-data-source-version>
           <schema-browser class="schema-container"
                           schema="schema"
                           on-refresh="refreshSchema()"
