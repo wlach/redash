@@ -108,6 +108,8 @@ def login(org_slug=None):
             return redirect(url_for("remote_user_auth.login", next=next_path))
         elif settings.SAML_LOGIN_ENABLED:
             return redirect(url_for("saml_auth.sp_initiated", next=next_path))
+        elif settings.AUTH0_ENABLED:
+            return redirect(url_for("auth0.authorize", next=next_path))
         else:
             return redirect(url_for("google_oauth.authorize", next=next_path))
 
@@ -131,6 +133,11 @@ def login(org_slug=None):
                            next=next_path,
                            username=request.form.get('username', ''),
                            show_google_openid=settings.GOOGLE_OAUTH_ENABLED,
+                           show_auth0=settings.AUTH0_ENABLED,
+                           auth0={'AUTH0_CALLBACK_URL': settings.AUTH0_CALLBACK_URL,
+                                    'AUTH0_CLIENT_ID': settings.AUTH0_CLIENT_ID,
+                                    'AUTH0_CLIENT_SECRET': settings.AUTH0_CLIENT_SECRET,
+                                    'AUTH0_DOMAIN': settings.AUTH0_DOMAIN},
                            google_auth_url=google_auth_url,
                            show_saml_login=settings.SAML_LOGIN_ENABLED,
                            show_remote_user_login=settings.REMOTE_USER_LOGIN_ENABLED)
