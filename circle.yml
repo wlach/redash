@@ -22,6 +22,11 @@ deployment:
     owner: mozilla
     commands:
       - ./bin/deploy "latest"
+  auth0:
+    branch: auth0
+    owner: mozilla
+    commands:
+      - ./bin/deploy "auth0"
   hub_releases:
     tag: /^m[0-9]+(\.[0-9]+)?$/
     owner: mozilla
