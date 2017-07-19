@@ -731,7 +731,7 @@ class QueryResult(db.Model, BelongsToOrgMixin):
         try:
             data_scanned_information = json.loads(data)['data_scanned']
         except (ValueError, TypeError) as e:
-            data_scanned_information = e
+            data_scanned_information = 'error'
 
         query_result = cls(org=org,
                            query_hash=query_hash,
