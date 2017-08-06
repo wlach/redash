@@ -20,6 +20,19 @@
 - Add: option to hide pivot table controls. @deecay
 - Retry reload of query results if it had an error.
 - [Data Sources] Add: MemSQL query runner. @alexanderlz
+- "Dumb" recents option (see #1779 for details)
+- Athena: direct query runner using the instead of JDBC proxy. @laughingman7743
+- Optionally support parameters in embeds. @ziahamza
+- Sorting ability in alerts view.
+- Option to change default encoding of CSV writer. @yamamanx
+- Ability to set dashboard level filters from UI.
+- CLI command to open IPython shell.
+- Add link to query page from admin view. @miketheman
+- Add the option to write logs to STDOUT instead of STDERR. @eyalzek
+- Add limit parameter to tasks API. @alexpekurovsky
+- Add SQLAlchemy pool settings.
+- Support for category type y axis.
+- Add 12 & 24 hours refresh rate option to dashboards.
 
 ### Changed
 
