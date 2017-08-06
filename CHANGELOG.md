@@ -82,6 +82,23 @@
 - [SQLite] better handle utf-8 error messages.
 - Fix: don't remove locks for queries with task status of PENDING.
 - Only split columns with __/:: that end with filter/MultiFilter.
+- Alert notifications fail (sometime) with a SQLAlchemy error.
+- Safeguard against empty query results when checking alert status. @danielerapati
+- Delete data source doesn't work when query results referenced by queries.
+- Fix redirect to /setup on the last setup step. @44px
+- Cassandra: use port setting in connection options. @yershalom
+- Metrics: table name wasn't found for count queries.
+- BigQuery wasn't loading due to bad import.
+- DynamicForm component was inserting empty values.
+- Clear null values from data source options dictionary.
+- /api/session API call wasn't working when multi tenancy enabled
+- If column had no type it would use previous column's type.
+- Alert destination details were not updating.
+- When setting rearm on a new alert, it wasn't persisted.
+- Salesforce: sandbox parameter should be optional. @msnider
+- Alert page wasn't properly linked from alerts list. @alison985
+- PostgreSQL passwords with spaces were not supported. (#1056)
+- PivotTable wasn't updating after first save.
 
 ## v1.0.3 - 2017-04-18
 
