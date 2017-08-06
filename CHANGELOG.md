@@ -59,6 +59,20 @@
 - Split refresh schemas into separate tasks and add a timeout.
 - Execute scheduled queries with parameters using their default value.
 - Keep track of last query execution (including failed ones) for scheduling purposes.
+- Same view for input on search result page as in header. @44px
+- Metrics: report endpoints without dots for metrics.
+- Redirect to / when org not found.
+- Improve parameters label placement. @44px
+- Auto-publish queries when they are named (with option to disable; #1830).
+- Show friendly error message in case of duplicate data source name.
+- Don't allow saving dashboard with empty name.
+- Enable strict checking for Angular DI.
+- Disable Angular debug info (should improve performance).
+- Update to Webpack 2. @44px
+- Remove /forgot endpoint if REDASH_PASSWORD_LOGIN_ENABLED is false. @amarjayr
+- Docker: make Gunicorn worker count configurable. @unixwitch
+- Snowflake support is no longer enabled by default.
+- Enable memory optimization for Excel exporter.
 
 ### Fixed
 
