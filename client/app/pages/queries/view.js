@@ -364,6 +364,17 @@ function QueryViewCtrl(
     });
   };
 
+  $scope.openAddToDashboardForm = () => {
+    $uibModal.open({
+      component: 'addToDashboardDialog',
+      size: 'sm',
+      resolve: {
+        query: $scope.query,
+        saveAddToDashboard: () => $scope.saveAddToDashboard,
+      },
+    });
+  };
+
   $scope.showEmbedDialog = (query, visualization) => {
     $uibModal.open({
       component: 'embedCodeDialog',
