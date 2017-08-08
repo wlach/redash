@@ -83,6 +83,7 @@
     "less": "^2.7.3",
     "less-loader": "^4.0.5",
     "less-plugin-autoprefix": "^1.5.1",
+    "ng-annotate-loader": "^0.6.1",
     "raw-loader": "^0.5.1",
     "url-loader": "^0.5.9",
     "webpack": "^3.6.0",
