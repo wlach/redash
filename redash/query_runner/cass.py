@@ -91,16 +91,23 @@ class Cassandra(BaseQueryRunner):
 
         query = """
 <<<<<<< HEAD
+<<<<<<< HEAD
         SELECT table_name, column_name
         FROM system_schema.columns
         WHERE keyspace_name ='{}';
 =======
         SELECT table_name, column_name FROM system_schema.columns where keyspace_name ='{}';
 >>>>>>> 9e0205d... Improve and fix cassandra query runner
+=======
+        SELECT table_name, column_name 
+        FROM system_schema.columns 
+        WHERE keyspace_name ='{}';
+>>>>>>> 478a86a... Fix codeclimate notices (SQL)
         """.format(self.configuration['keyspace'])
 
         if release_version.startswith('2'):
                 query = """
+<<<<<<< HEAD
 <<<<<<< HEAD
                 SELECT columnfamily_name AS table_name, column_name
                 FROM system.schema_columns
@@ -108,6 +115,11 @@ class Cassandra(BaseQueryRunner):
 =======
                 SELECT columnfamily_name AS table_name, column_name FROM system.schema_columns where keyspace_name ='{}';
 >>>>>>> 9e0205d... Improve and fix cassandra query runner
+=======
+                SELECT columnfamily_name AS table_name, column_name 
+                FROM system.schema_columns
+                WHERE keyspace_name ='{}';
+>>>>>>> 478a86a... Fix codeclimate notices (SQL)
                 """.format(self.configuration['keyspace'])
 
         results, error = self.run_query(query, None)
