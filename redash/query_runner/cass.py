@@ -90,16 +90,24 @@ class Cassandra(BaseQueryRunner):
         release_version = results['rows'][0]['release_version']
 
         query = """
+<<<<<<< HEAD
         SELECT table_name, column_name
         FROM system_schema.columns
         WHERE keyspace_name ='{}';
+=======
+        SELECT table_name, column_name FROM system_schema.columns where keyspace_name ='{}';
+>>>>>>> 9e0205d... Improve and fix cassandra query runner
         """.format(self.configuration['keyspace'])
 
         if release_version.startswith('2'):
                 query = """
+<<<<<<< HEAD
                 SELECT columnfamily_name AS table_name, column_name
                 FROM system.schema_columns
                 WHERE keyspace_name ='{}';
+=======
+                SELECT columnfamily_name AS table_name, column_name FROM system.schema_columns where keyspace_name ='{}';
+>>>>>>> 9e0205d... Improve and fix cassandra query runner
                 """.format(self.configuration['keyspace'])
 
         results, error = self.run_query(query, None)
