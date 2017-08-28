@@ -1,4 +1,5 @@
 import json
+from markupsafe import Markup, escape
 
 from redash.utils import JSONEncoder
 from redash.query_runner import *
@@ -106,6 +107,10 @@ class Presto(BaseQueryRunner):
 
             if row['extra_info'] == 'partition key':
                 schema[table_name]['columns'].append('[P] ' + row['column_name'] + ' (' + row['column_type'] + ')')
+            elif row['column_type'][0:3] == 'row(':
+                schema[table_name]['columns'].append(row['column_name'] + ' (row())')
+            elif row['column_type'][0:3] == 'map(':
+                schema[table_name]['columns'].append(row['column_name'] + ' (map())')
             else:
                 schema[table_name]['columns'].append(row['column_name'] + ' (' + row['column_type'] + ')')
 
@@ -127,6 +132,9 @@ class Presto(BaseQueryRunner):
             column_tuples = [(i[0], PRESTO_TYPES_MAPPING.get(i[1], None)) for i in cursor.description]
             columns = self.fetch_columns(column_tuples)
             rows = [dict(zip(([c['name'] for c in columns]), r)) for i, r in enumerate(cursor.fetchall())]
+            for row in rows:
+                for field in row:
+                    field = escape(field)
             data = {'columns': columns, 'rows': rows, 'data_scanned': 'N/A'}
             json_data = json.dumps(data, cls=JSONEncoder)
             error = None
