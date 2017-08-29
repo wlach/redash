@@ -89,7 +89,7 @@ class ActiveData(BaseSQLQueryRunner):
             if table_name not in schema:
                 schema[table_name] = {'name': table_name, 'columns': []}
 
-            schema[table_name]['columns'].append(row['name'] + ' (' + row['type'] + ')')
+            schema[table_name]['columns'].append(row['name'] + ' (' + types_map.get(row['type'], TYPE_STRING) + ')')
 
         return [{'name': r['name'], 'columns': sorted(r['columns'])} for r in schema.values()]
 
