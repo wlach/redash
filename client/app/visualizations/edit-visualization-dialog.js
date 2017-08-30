@@ -53,7 +53,7 @@ const EditVisualizationDialog = {
 
     this.has3plusColumnsFunction = () => {
       let has3plusColumns = false;
-      if ((JSON.stringify(this.visualization.options.columnMapping).match(/,/g) || []).length > 1) {
+      if ((JSON.stringify(this.visualization.options.columnMapping).match(/,/g) || []).length > 2) {
         has3plusColumns = true;
       }
       return has3plusColumns;
@@ -62,6 +62,7 @@ const EditVisualizationDialog = {
     this.disableSubmit = () => {
       if (this.visualization.options.globalSeriesType === 'column'
           && this.has3plusColumnsFunction()
+          && !JSON.stringify(this.visualization.options.columnMapping).includes('"":')
           && JSON.stringify(this.visualization.options.columnMapping).includes('unused')) {
         return true;
       }
