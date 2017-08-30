@@ -171,6 +171,10 @@ class Athena(BaseQueryRunner):
 
             if row['extra_info'] == 'partition key':
                 schema[table_name]['columns'].append('[P] ' + row['column_name'] + ' (' + row['column_type'] + ')')
+            elif row['column_type'][0:3] == 'row(':
+                schema[table_name]['columns'].append(row['column_name'] + ' (row())')
+            elif row['column_type'][0:3] == 'map(':
+                schema[table_name]['columns'].append(row['column_name'] + ' (map())')
             else:
                 schema[table_name]['columns'].append(row['column_name'] + ' (' + row['column_type'] + ')')
 
