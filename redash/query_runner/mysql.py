@@ -58,6 +58,12 @@ class Mysql(BaseSQLQueryRunner):
                 'port': {
                     'type': 'number',
                     'default': 3306,
+                },
+                "toggle_table_string": {
+                    "type": "string",
+                    "title": "Toggle Table String",
+                    "default": "_v",
+                    "info": "This string will be used to toggle visibility of tables in the schema browser when editing a query in order to remove non-useful tables from sight."
                 }
             },
             "order": ['host', 'port', 'user', 'passwd', 'db'],
@@ -109,7 +115,8 @@ class Mysql(BaseSQLQueryRunner):
         query = """
         SELECT col.table_schema,
                col.table_name,
-               col.column_name
+               col.column_name,
+               col.column_type
         FROM `information_schema`.`columns` col
         WHERE col.table_schema NOT IN ('information_schema', 'performance_schema', 'mysql');
         """
@@ -130,7 +137,7 @@ class Mysql(BaseSQLQueryRunner):
             if table_name not in schema:
                 schema[table_name] = {'name': table_name, 'columns': []}
 
-            schema[table_name]['columns'].append(row['column_name'])
+            schema[table_name]['columns'].append(row['column_name'] + ' (' + row['column_type'] + ')')
 
         return schema.values()
 
@@ -157,7 +164,7 @@ class Mysql(BaseSQLQueryRunner):
                 columns = self.fetch_columns([(i[0], types_map.get(i[1], None)) for i in cursor.description])
                 rows = [dict(zip((c['name'] for c in columns), row)) for row in data]
 
-                data = {'columns': columns, 'rows': rows}
+                data = {'columns': columns, 'rows': rows, 'data_scanned': 'N/A'}
                 json_data = json.dumps(data, cls=JSONEncoder)
                 error = None
             else:

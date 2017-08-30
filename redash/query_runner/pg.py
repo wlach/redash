@@ -78,6 +78,12 @@ class PostgreSQL(BaseSQLQueryRunner):
                     "type": "string",
                     "title": "Documentation URL",
                     "default": cls.default_doc_url
+                },
+                "toggle_table_string": {
+                    "type": "string",
+                    "title": "Toggle Table String",
+                    "default": "_v",
+                    "info": "This string will be used to toggle visibility of tables in the schema browser when editing a query in order to remove non-useful tables from sight."
                 }
             },
             "order": ['host', 'port', 'user', 'password'],
@@ -117,11 +123,11 @@ class PostgreSQL(BaseSQLQueryRunner):
             if table_name not in schema:
                 schema[table_name] = {'name': table_name, 'columns': []}
 
-            schema[table_name]['columns'].append(row['column_name'])
+            schema[table_name]['columns'].append(row['column_name'] + ' (' + row['column_type'] + ')')
 
     def _get_tables(self, schema):
         query = """
-        SELECT table_schema, table_name, column_name
+        SELECT table_schema, table_name, column_name, udt_name as column_type
         FROM information_schema.columns
         WHERE table_schema NOT IN ('pg_catalog', 'information_schema');
         """

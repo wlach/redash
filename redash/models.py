@@ -387,6 +387,8 @@ class User(TimestampMixin, db.Model, BelongsToOrgMixin, UserMixin, PermissionsCh
         if with_api_key:
             d['api_key'] = self.api_key
 
+        d['last_active_at'] = Event.query.filter(Event.user_id == self.id).with_entities(Event.created_at).order_by(Event.created_at.desc()).first()
+
         return d
 
     def is_api_user(self):
@@ -477,13 +479,14 @@ class DataSource(BelongsToOrgMixin, db.Model):
             'syntax': self.query_runner.syntax,
             'paused': self.paused,
             'pause_reason': self.pause_reason,
-            'type_name': self.query_runner.name(),
+            'type_name': self.query_runner.name()
         }
 
+        
         schema = get_configuration_schema_for_query_runner_type(self.type)
+        self.options.set_schema(schema)
+        d['options'] = self.options.to_dict(mask_secrets=True)
         if all:
-            self.options.set_schema(schema)
-            d['options'] = self.options.to_dict(mask_secrets=True)
             d['queue_name'] = self.queue_name
             d['scheduled_queue_name'] = self.scheduled_queue_name
             d['groups'] = self.groups
@@ -492,11 +495,6 @@ class DataSource(BelongsToOrgMixin, db.Model):
             d['view_only'] = db.session.query(DataSourceGroup.view_only).filter(
                 DataSourceGroup.group == with_permissions_for,
                 DataSourceGroup.data_source == self).one()[0]
-
-        doc_url = self.options.get('doc_url', schema['properties'].get(
-            'doc_url', {}).get('default'))
-        if doc_url:
-            d['options'] = {'doc_url': doc_url}
 
         return d
 
@@ -572,8 +570,6 @@ class DataSource(BelongsToOrgMixin, db.Model):
         db.session.add(dsg)
         return dsg
 
-        setattr(self, 'data_source_groups', dsg)
-
     def remove_group(self, group):
         db.session.query(DataSourceGroup).filter(
             DataSourceGroup.group == group,
@@ -632,10 +628,10 @@ class QueryResult(db.Model, BelongsToOrgMixin):
     __tablename__ = 'query_results'
 
     def to_dict(self):
-        if hasattr(self, 'data_scanned') and self.data_scanned:
+        if hasattr(self, 'data_scanned'):
             data_scanned_info = self.data_scanned
         else:
-            data_scanned_info = ''
+            data_scanned_info = 'to_dict'
 
         return {
             'id': self.id,
@@ -682,7 +678,7 @@ class QueryResult(db.Model, BelongsToOrgMixin):
     def store_result(cls, org, data_source, query_hash, query, data, run_time, retrieved_at):
         try:
             data_scanned_information = json.loads(data)['data_scanned']
-        except (ValueError, TypeError):
+        except (ValueError, TypeError, KeyError) as e:
             data_scanned_information = ''
 
         query_result = cls(org=org,
@@ -1311,6 +1307,30 @@ class Dashboard(ChangeTrackingMixin, TimestampMixin, BelongsToOrgMixin, db.Model
         query = query.filter(or_(Dashboard.user_id == user_id, Dashboard.is_draft == False))
 
         return query
+
+    @classmethod
+    def search(cls, term, user_id, group_ids, include_drafts=False):
+        # limit_to_users_dashboards=False, 
+        # TODO: This is very naive implementation of search, to be replaced with PostgreSQL full-text-search solution.
+        where = (Dashboard.name.ilike(u"%{}%".format(term)))
+
+        if term.isdigit():
+            where |= Dashboard.id == term
+
+        #if limit_to_users_dashboards:
+        #    where &= Dashboard.user_id == user_id
+
+        where &= Dashboard.is_archived == False
+
+        if not include_drafts:
+            where &= Dashboard.is_draft == False
+
+        where &= DataSourceGroup.group_id.in_(group_ids)
+        dashboard_ids = (
+            db.session.query(Dashboard.id)
+            .filter(where)).distinct()
+
+        return Dashboard.query.filter(Dashboard.id.in_(dashboard_ids))
 
     @classmethod
     def recent(cls, org, group_ids, user_id, for_user=False, limit=20):

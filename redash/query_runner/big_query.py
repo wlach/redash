@@ -123,6 +123,12 @@ class BigQuery(BaseQueryRunner):
                 'maximumBillingTier': {
                     "type": "number",
                     "title": "Maximum Billing Tier"
+                },
+                "toggle_table_string": {
+                    "type": "string",
+                    "title": "Toggle Table String",
+                    "default": "_v",
+                    "info": "This string will be used to toggle visibility of tables in the schema browser when editing a query in order to remove non-useful tables from sight."
                 }
             },
             'required': ['jsonKeyFile', 'projectId'],
@@ -248,6 +254,7 @@ class BigQuery(BaseQueryRunner):
                     return None, "Larger than %d MBytes will be processed (%f MBytes)" % (limitMB, processedMB)
 
             data = self._get_query_result(jobs, query)
+            data.update({'data_scanned':'N/A'})
             error = None
 
             json_data = json.dumps(data, cls=JSONEncoder)

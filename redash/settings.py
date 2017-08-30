@@ -134,6 +134,7 @@ COOKIE_SECRET = os.environ.get("REDASH_COOKIE_SECRET", "c292a0a3aa32397cdb050e23
 SESSION_COOKIE_SECURE = parse_boolean(os.environ.get("REDASH_SESSION_COOKIE_SECURE") or str(ENFORCE_HTTPS))
 
 LOG_LEVEL = os.environ.get("REDASH_LOG_LEVEL", "INFO")
+LOG_STDOUT = parse_boolean(os.environ.get('REDASH_LOG_STDOUT', 'false'))
 
 # Mail settings:
 MAIL_SERVER = os.environ.get('REDASH_MAIL_SERVER', 'localhost')
@@ -190,7 +191,8 @@ default_query_runners = [
     'redash.query_runner.google_analytics',
     'redash.query_runner.snowflake',
     'redash.query_runner.axibase_tsd',
-    'redash.query_runner.salesforce'
+    'redash.query_runner.salesforce',
+    'redash.query_runner.activedata'
 ]
 
 enabled_query_runners = array_from_string(os.environ.get("REDASH_ENABLED_QUERY_RUNNERS", ",".join(default_query_runners)))
