@@ -93,7 +93,7 @@ function queryEditor(QuerySnippet) {
             editor.focus();
           },
         };
-
+/*
         function removeExtraSchemaInfo(data) {
           let newColumns = [];
           data.forEach((table) => {
@@ -114,11 +114,11 @@ function queryEditor(QuerySnippet) {
           newColumns = []; // linter complains without this line
           return data;
         }
-
+*/
         const schemaCompleter = {
           getCompletions(state, session, pos, prefix, callback) {
             // make a variable for the auto completion in the query editor
-            $scope.autoCompleteSchema = removeExtraSchemaInfo($scope.schema);
+            $scope.autoCompleteSchema = $scope.schema; // removeExtraSchemaInfo(
 
             if (prefix.length === 0 || !$scope.autoCompleteSchema) {
               callback(null, []);
@@ -131,7 +131,16 @@ function queryEditor(QuerySnippet) {
               $scope.autoCompleteSchema.forEach((table) => {
                 keywords[table.name] = 'Table';
 
-                table.autoCompleteColumns.forEach((c) => {
+                table.columns.forEach((c) => { // autoCompleteColumns
+                  if (c.charAt(c.length - 1) === ')') {
+                    let parensStartAt = c.indexOf('(') - 1;
+                    c = c.substring(0, parensStartAt);
+                    parensStartAt = 1; // linter complains without this line
+                  }
+                  // remove '[P] ' for partition keys
+                  if (c.charAt(0) === '[') {
+                    c = c.substring(4, c.length);
+                  }
                   keywords[c] = 'Column';
                   keywords[`${table.name}.${c}`] = 'Column';
                 });
