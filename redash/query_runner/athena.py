@@ -139,8 +139,10 @@ class AthenaUpstream(BaseQueryRunner):
 
             if row['extra_info'] == 'partition key':
                 schema[table_name]['columns'].append('[P] ' + row['column_name'] + ' (' + row['column_type'] + ')')
-            elif row['column_type'][0:3] == 'row(' and row['column_type'][0:3] == 'map(':
+            elif row['column_type'] == 'integer' or row['column_type'] == 'varchar' or row['column_type'] == 'timestamp' or row['column_type'] == 'boolean' or row['column_type'] == 'bigint':
                 schema[table_name]['columns'].append(row['column_name'] + ' (' + row['column_type'] + ')')
+            elif row['column_type'][0:2] == 'row' and row['column_type'][0:2] == 'map':
+                schema[table_name]['columns'].append(row['column_name'] + ' (row or map)')
             else:
                 schema[table_name]['columns'].append(row['column_name'])
 
