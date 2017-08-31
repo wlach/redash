@@ -157,6 +157,7 @@ class Athena(BaseQueryRunner):
         SELECT table_schema, table_name, column_name, data_type as column_type, comment as extra_info
         FROM information_schema.columns
         WHERE table_schema NOT IN ('information_schema')
+        ORDER BY 1, 5 DESC
         """
 
         results, error = self.run_query(query, None)
