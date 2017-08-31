@@ -76,7 +76,7 @@ function queryEditor(QuerySnippet) {
                   newSchema.reduce((totalLength, table) => totalLength + table.columns.length, 0);
                 // If there are too many tokens we disable live autocomplete,
                 // as it makes typing slower.
-                if (tokensCount > 5000) {
+                if (tokensCount > 3000) {
                   editor.setOption('enableLiveAutocompletion', false);
                 } else {
                   editor.setOption('enableLiveAutocompletion', true);
