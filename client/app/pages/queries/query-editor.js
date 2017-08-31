@@ -78,8 +78,10 @@ function queryEditor(QuerySnippet) {
                 // as it makes typing slower.
                 if (tokensCount > 3000) {
                   editor.setOption('enableLiveAutocompletion', false);
+                  editor.setOption('enableBasicAutocompletion', false);
                 } else {
                   editor.setOption('enableLiveAutocompletion', true);
+                  editor.setOption('enableBasicAutocompletion', true);
                 }
               }
             });
