@@ -202,7 +202,6 @@ function DashboardCtrl(
     this.dashboard = Dashboard.get(
       { slug: $routeParams.dashboardSlug },
       (dashboard) => {
-        Events.record('view', 'dashboard', dashboard.id);
         renderDashboard(dashboard, force);
 
         if ($location.search().edit === true) {
@@ -236,7 +235,6 @@ function DashboardCtrl(
 
   this.archiveDashboard = () => {
     const archive = () => {
-      Events.record('archive', 'dashboard', this.dashboard.id);
       this.dashboard.$delete(() => {
         $rootScope.$broadcast('reloadDashboards');
       });
