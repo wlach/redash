@@ -112,7 +112,7 @@ class DashboardResource(BaseResource):
 
         self.record_event({
             'action': 'view',
-            'object_id': response.id,
+            'object_id': dashboard.id,
             'object_type': 'dashboard',
         })
 
@@ -166,7 +166,7 @@ class DashboardResource(BaseResource):
         result = dashboard.to_dict(with_widgets=True, user=self.current_user)
         self.record_event({
             'action': 'edit',
-            'object_id': result.id,
+            'object_id': dashboard.id,
             'object_type': 'dashboard',
         })
         return result
@@ -188,7 +188,7 @@ class DashboardResource(BaseResource):
         models.db.session.commit()
         self.record_event({
             'action': 'archive',
-            'object_id': d.id,
+            'object_id': dashboard.id,
             'object_type': 'dashboard',
         })
         return d
