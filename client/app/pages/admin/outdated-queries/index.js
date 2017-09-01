@@ -4,7 +4,6 @@ import { Paginator } from '../../../utils';
 import template from './outdated-queries.html';
 
 function OutdatedQueriesCtrl($scope, Events, $http, $timeout) {
-  Events.record('view', 'page', 'admin/outdated_queries');
   $scope.autoUpdate = true;
 
   this.queries = new Paginator([], { itemsPerPage: 50 });
