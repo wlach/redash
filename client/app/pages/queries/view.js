@@ -133,7 +133,6 @@ function QueryViewCtrl(
     KeyboardShortcuts.unbind(shortcuts);
   });
 
-  Events.record('view', 'query', $scope.query.id);
   if ($scope.query.hasResult() || $scope.query.paramsRequired()) {
     getQueryResult();
   }
@@ -175,8 +174,6 @@ function QueryViewCtrl(
   };
 
   $scope.duplicateQuery = () => {
-    Events.record('fork', 'query', $scope.query.id);
-
     Query.fork({ id: $scope.query.id }, (newQuery) => {
       $location.url(newQuery.getSourceLink()).replace();
     });
