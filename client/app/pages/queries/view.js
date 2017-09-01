@@ -126,7 +126,6 @@ function QueryViewCtrl(
     KeyboardShortcuts.unbind(shortcuts);
   });
 
-  Events.record('view', 'query', $scope.query.id);
   if ($scope.query.hasResult() || $scope.query.paramsRequired()) {
     getQueryResult();
   }
