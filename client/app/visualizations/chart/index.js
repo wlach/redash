@@ -123,8 +123,9 @@ function ChartEditor(ColorPalette, clientConfig) {
         if (scope.options.globalSeriesType === 'pie') {
           const seriesData = scope.queryResult.getData();
           scope.form.colorsList = [];
+          const xColumnName = scope.form.xAxisColumn;
           seriesData.forEach((rowOfData) => {
-            scope.form.colorsList.push(rowOfData.action);
+            scope.form.colorsList.push(rowOfData[xColumnName]);
           });
 
           const colorNames = scope.form.colorsList;
