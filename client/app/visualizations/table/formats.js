@@ -8,13 +8,14 @@ const urlPattern = /(^|[\s\n]|<br\/?>)((?:https?|ftp):\/\/[\-A-Z0-9+\u0026\u2019
 function createDefaultFormatter(highlightLinks) {
   if (highlightLinks) {
     return (value) => {
+      value = value.replace(/[\u00A0-\u9999<>&'"]/gim, i => `&#${i.charCodeAt(0)};`);
       if (_.isString(value)) {
         value = value.replace(urlPattern, '$1<a href="$2" target="_blank">$2</a>');
       }
       return value;
     };
   }
-  return value => value;
+  return value => value.replace(/[\u00A0-\u9999<>&'"]/gim, i => `&#${i.charCodeAt(0)};`);
 }
 
 function createDateTimeFormatter(format) {
