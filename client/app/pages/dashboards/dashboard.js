@@ -112,7 +112,6 @@ function DashboardCtrl($rootScope, $routeParams, $location, $timeout, $q, $uibMo
 
   this.loadDashboard = _.throttle((force) => {
     this.dashboard = Dashboard.get({ slug: $routeParams.dashboardSlug }, (dashboard) => {
-      Events.record('view', 'dashboard', dashboard.id);
       renderDashboard(dashboard, force);
     }, () => {
         // error...
@@ -134,7 +133,6 @@ function DashboardCtrl($rootScope, $routeParams, $location, $timeout, $q, $uibMo
 
   this.archiveDashboard = () => {
     const archive = () => {
-      Events.record('archive', 'dashboard', this.dashboard.id);
       this.dashboard.$delete(() => {
         $rootScope.$broadcast('reloadDashboards');
       });

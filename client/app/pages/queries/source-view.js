@@ -69,8 +69,6 @@ function QuerySourceCtrl(Events, toastr, $controller, $scope, $location, $http, 
   };
 
   $scope.duplicateQuery = () => {
-    Events.record('fork', 'query', $scope.query.id);
-
     Query.fork({ id: $scope.query.id }, (newQuery) => {
       $location.url(newQuery.getSourceLink()).replace();
     });
@@ -84,8 +82,6 @@ function QuerySourceCtrl(Events, toastr, $controller, $scope, $location, $http, 
     const confirm = { class: 'btn-danger', title: 'Delete' };
 
     AlertDialog.open(title, message, confirm).then(() => {
-      Events.record('delete', 'visualization', vis.id);
-
       Visualization.delete({ id: vis.id }, () => {
         if ($scope.selectedTab === String(vis.id)) {
           $scope.selectedTab = DEFAULT_TAB;

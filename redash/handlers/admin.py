@@ -1,4 +1,5 @@
 import json
+import time
 
 from flask import request
 from flask_login import login_required
@@ -7,6 +8,7 @@ from redash.handlers import routes
 from redash.handlers.base import json_response
 from redash.permissions import require_super_admin
 from redash.tasks.queries import QueryTaskTracker
+from redash.tasks import record_event
 
 
 @routes.route('/api/admin/queries/outdated', methods=['GET'])
@@ -22,6 +24,13 @@ def outdated_queries():
                             .order_by(models.Query.created_at.desc()))
     else:
         outdated_queries = []
+
+    record_event({
+        'action': 'view',
+        'object_type': 'api_call',
+        'object_id': 'admin/outdated_queries',
+        'timestamp': int(time.time()),
+    })
 
     return json_response(
         dict(queries=[q.to_dict(with_stats=True, with_last_modified_by=False)
@@ -41,6 +50,12 @@ def queries_tasks():
     waiting = QueryTaskTracker.all(QueryTaskTracker.WAITING_LIST, limit=waiting_limit)
     in_progress = QueryTaskTracker.all(QueryTaskTracker.IN_PROGRESS_LIST, limit=progress_limit)
     done = QueryTaskTracker.all(QueryTaskTracker.DONE_LIST, limit=done_limit)
+    record_event({
+        'action': 'view',
+        'object_type': 'api_call',
+        'object_id': 'admin/tasks',
+        'timestamp': int(time.time()),
+    })
 
     response = {
         'waiting': [t.data for t in waiting if t is not None],

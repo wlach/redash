@@ -122,9 +122,10 @@ class AthenaUpstream(BaseQueryRunner):
     def get_schema(self, get_stats=False):
         schema = {}
         query = """
-        SELECT table_schema, table_name, column_name, data_type as column_type, extra_info
+        SELECT table_schema, table_name, column_name, data_type as column_type, comment as extra_info
         FROM information_schema.columns
         WHERE table_schema NOT IN ('information_schema')
+        ORDER BY 1, 5 DESC
         """
 
         results, error = self.run_query(query, None)
@@ -137,10 +138,14 @@ class AthenaUpstream(BaseQueryRunner):
             if table_name not in schema:
                 schema[table_name] = {'name': table_name, 'columns': []}
 
-            if row['extra_info'] == 'partition key':
+            if row['extra_info'] == 'Partition Key':
                 schema[table_name]['columns'].append('[P] ' + row['column_name'] + ' (' + row['column_type'] + ')')
-            else:
+            elif row['column_type'] == 'integer' or row['column_type'] == 'varchar' or row['column_type'] == 'timestamp' or row['column_type'] == 'boolean' or row['column_type'] == 'bigint':
                 schema[table_name]['columns'].append(row['column_name'] + ' (' + row['column_type'] + ')')
+            elif row['column_type'][0:2] == 'row' or row['column_type'][0:2] == 'map' or row['column_type'][0:2] == 'arr':
+                schema[table_name]['columns'].append(row['column_name'] + ' (row or map or array)')
+            else:
+                schema[table_name]['columns'].append(row['column_name'])
 
 
         return schema.values()
