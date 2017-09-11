@@ -1,6 +1,7 @@
 import json
 import time
 
+from flask import request
 from flask_login import login_required
 from redash import models, redis_connection
 from redash.handlers import routes
@@ -41,15 +42,20 @@ def outdated_queries():
 @require_super_admin
 @login_required
 def queries_tasks():
+    global_limit = int(request.args.get('limit', 50))
+    waiting_limit = int(request.args.get('waiting_limit', global_limit))
+    progress_limit = int(request.args.get('progress_limit', global_limit))
+    done_limit = int(request.args.get('done_limit', global_limit))
+
+    waiting = QueryTaskTracker.all(QueryTaskTracker.WAITING_LIST, limit=waiting_limit)
+    in_progress = QueryTaskTracker.all(QueryTaskTracker.IN_PROGRESS_LIST, limit=progress_limit)
+    done = QueryTaskTracker.all(QueryTaskTracker.DONE_LIST, limit=done_limit)
     record_event({
         'action': 'view',
         'object_type': 'api_call',
         'object_id': 'admin/tasks',
         'timestamp': int(time.time()),
     })
-    waiting = QueryTaskTracker.all(QueryTaskTracker.WAITING_LIST)
-    in_progress = QueryTaskTracker.all(QueryTaskTracker.IN_PROGRESS_LIST)
-    done = QueryTaskTracker.all(QueryTaskTracker.DONE_LIST, limit=50)
 
     response = {
         'waiting': [t.data for t in waiting if t is not None],
