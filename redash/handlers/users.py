@@ -24,7 +24,7 @@ class UserListResource(BaseResource):
         self.record_event({
             'action': 'view',
             'object_id': 'users',
-            'object_type': 'page',
+            'object_type': 'api_call',
         })
         return [u.to_dict() for u in models.User.all(self.current_org)]
 

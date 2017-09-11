@@ -27,7 +27,7 @@ def outdated_queries():
 
     record_event({
         'action': 'view',
-        'object_type': 'page',
+        'object_type': 'api_call',
         'object_id': 'admin/outdated_queries',
         'timestamp': int(time.time()),
     })
@@ -52,7 +52,7 @@ def queries_tasks():
     done = QueryTaskTracker.all(QueryTaskTracker.DONE_LIST, limit=done_limit)
     record_event({
         'action': 'view',
-        'object_type': 'page',
+        'object_type': 'api_call',
         'object_id': 'admin/tasks',
         'timestamp': int(time.time()),
     })

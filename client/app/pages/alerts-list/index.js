@@ -8,7 +8,7 @@ const stateClass = {
 };
 
 class AlertsListCtrl {
-  constructor(Events, Alert) {
+  constructor(Alert) {
     this.alerts = new Paginator([], { itemsPerPage: 20 });
     Alert.query((alerts) => {
       this.alerts.updateRows(alerts.map(alert => ({
