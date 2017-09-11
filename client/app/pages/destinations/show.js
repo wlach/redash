@@ -5,9 +5,7 @@ import template from './show.html';
 const logger = debug('redash:http');
 
 function DestinationCtrl($scope, $routeParams, $http, $location, toastr,
-                         currentUser, Events, Destination) {
-  Events.record('view', 'page', 'admin/destination');
-
+                         currentUser, Destination) {
   $scope.destinationId = $routeParams.destinationId;
 
   if ($scope.destinationId === 'new') {
@@ -23,8 +21,6 @@ function DestinationCtrl($scope, $routeParams, $http, $location, toastr,
   });
 
   $scope.delete = () => {
-    Events.record('delete', 'destination', $scope.destination.id);
-
     $scope.destination.$delete(() => {
       toastr.success('Destination deleted successfully.');
       $location.path('/destinations/');

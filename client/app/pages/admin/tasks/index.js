@@ -4,8 +4,7 @@ import { Paginator } from '../../../utils';
 import template from './tasks.html';
 import registerCancelQueryButton from './cancel-query-button';
 
-function TasksCtrl($scope, $location, $http, $timeout, Events) {
-  Events.record('view', 'page', 'admin/tasks');
+function TasksCtrl($scope, $location, $http, $timeout) {
   $scope.autoUpdate = true;
 
   $scope.selectedTab = 'in_progress';
