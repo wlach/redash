@@ -14,6 +14,7 @@ Plotly.setPlotConfig({
 });
 
 const DEFAULT_BOTTOM_MARGIN = 50;
+const DEFAULT_XAXIS_LABEL_LENGTH = 300;
 
 // The following colors will be used if you pick "Automatic" color.
 const BaseColors = {
@@ -227,6 +228,7 @@ const PlotlyChart = () => ({
 
 
     function recalculateOptions() {
+      const xAxisLabelLength = parseInt(scope.options.xAxisLabelLength, 10) || DEFAULT_XAXIS_LABEL_LENGTH;
       scope.layout.margin.b = parseInt(scope.options.bottomMargin, 10) || DEFAULT_BOTTOM_MARGIN;
 
       scope.data.length = 0;
@@ -279,8 +281,9 @@ const PlotlyChart = () => ({
 
           each(series.data, (row, rowIdx) => {
             plotlySeries.values.push(row.y);
-            plotlySeries.labels.push(hasX ? row.x : `Slice ${index}`);
-            const rowOpts = scope.options.seriesOptions[hasX ? row.x : `Slice ${index}`];
+            const rowX = row.x.toString().substr(0, xAxisLabelLength);
+            plotlySeries.labels.push(hasX ? rowX : `Slice ${index}`);
+            const rowOpts = scope.options.seriesOptions[hasX ? rowX : `Slice ${index}`];
             plotlySeries.marker.colors[rowIdx] = rowOpts ? rowOpts.color : getColor(rowIdx);
           });
 
