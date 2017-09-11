@@ -30,7 +30,7 @@ class DataSourceResource(BaseResource):
         self.record_event({
             'action': 'view',
             'object_id': page,
-            'object_type': 'page',
+            'object_type': 'api_call',
         })
         return ds
 
@@ -98,7 +98,7 @@ class DataSourceListResource(BaseResource):
         self.record_event({
             'action': 'view',
             'object_id': 'admin/data_sources',
-            'object_type': 'page',
+            'object_type': 'api_call',
         })
         return sorted(response.values(), key=lambda d: d['id'])
 

@@ -83,7 +83,7 @@ class AlertListResource(BaseResource):
             'action': 'view',
             'timestamp': int(time.time()),
             'object_id': 'alerts',
-            'object_type': 'page'
+            'object_type': 'api_call'
         })
         return [alert.to_dict() for alert in models.Alert.all(group_ids=self.current_user.group_ids)]
 

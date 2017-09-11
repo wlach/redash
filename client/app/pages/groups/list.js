@@ -1,7 +1,7 @@
 import { Paginator } from '../../utils';
 import template from './list.html';
 
-function GroupsCtrl($scope, $uibModal, currentUser, Events, Group) {
+function GroupsCtrl($scope, $uibModal, currentUser, Group) {
   $scope.currentUser = currentUser;
   $scope.groups = new Paginator([], { itemsPerPage: 20 });
   Group.query((groups) => {

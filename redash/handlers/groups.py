@@ -33,7 +33,7 @@ class GroupListResource(BaseResource):
         self.record_event({
             'action': 'view',
             'object_id': 'groups',
-            'object_type': 'page',
+            'object_type': 'api_call',
         })
 
         return [g.to_dict() for g in groups]
