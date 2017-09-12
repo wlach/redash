@@ -29,7 +29,8 @@ function formatValue($filter, clientConfig, value, type) {
       break;
     default:
       if (isString(value)) {
-        formattedValue = $filter('linkify')(value);
+        formattedValue = $filter('linkify')(value.replace(
+            /[\u00A0-\u9999<>&'"]/gim, i => `&#${i.charCodeAt(0)};`));
       }
       break;
   }

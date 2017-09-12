@@ -57,8 +57,6 @@ function DashboardWidgetCtrl($location, $uibModal, $window, Events, currentUser)
       return;
     }
 
-    Events.record('delete', 'widget', this.widget.id);
-
     this.widget.$delete((response) => {
       this.dashboard.widgets =
         this.dashboard.widgets.map(row => row.filter(widget => widget.id !== undefined));
@@ -85,8 +83,8 @@ function DashboardWidgetCtrl($location, $uibModal, $window, Events, currentUser)
   };
 
   if (this.widget.visualization) {
-    Events.record('view', 'query', this.widget.visualization.query.id);
-    Events.record('view', 'visualization', this.widget.visualization.id);
+    Events.record('view', 'query', this.widget.visualization.query.id, { dashboard: true });
+    Events.record('view', 'visualization', this.widget.visualization.id, { dashboard: true });
 
     this.query = this.widget.getQuery();
     this.reload(false);

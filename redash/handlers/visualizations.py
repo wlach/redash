@@ -49,5 +49,12 @@ class VisualizationResource(BaseResource):
     def delete(self, visualization_id):
         vis = get_object_or_404(models.Visualization.get_by_id_and_org, visualization_id, self.current_org)
         require_object_modify_permission(vis.query_rel, self.current_user)
+        require_admin_or_owner(vis.query_rel.user_id)
+        self.record_event({
+            'action': 'delete',
+            'object_id': visualization_id,
+            'object_type': 'visualization',
+        })
+
         models.db.session.delete(vis)
         models.db.session.commit()
