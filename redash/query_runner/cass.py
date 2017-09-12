@@ -90,45 +90,16 @@ class Cassandra(BaseQueryRunner):
         release_version = results['rows'][0]['release_version']
 
         query = """
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
         SELECT table_name, column_name
         FROM system_schema.columns
         WHERE keyspace_name ='{}';
-=======
-        SELECT table_name, column_name FROM system_schema.columns where keyspace_name ='{}';
->>>>>>> 9e0205d... Improve and fix cassandra query runner
-=======
-        SELECT table_name, column_name 
-        FROM system_schema.columns 
-=======
-        SELECT table_name, column_name
-        FROM system_schema.columns
->>>>>>> b42d2c5... Fix codeclimate notices (trailing space)
-        WHERE keyspace_name ='{}';
->>>>>>> 478a86a... Fix codeclimate notices (SQL)
         """.format(self.configuration['keyspace'])
 
         if release_version.startswith('2'):
                 query = """
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
                 SELECT columnfamily_name AS table_name, column_name
                 FROM system.schema_columns
                 WHERE keyspace_name ='{}';
-=======
-                SELECT columnfamily_name AS table_name, column_name FROM system.schema_columns where keyspace_name ='{}';
->>>>>>> 9e0205d... Improve and fix cassandra query runner
-=======
-                SELECT columnfamily_name AS table_name, column_name 
-=======
-                SELECT columnfamily_name AS table_name, column_name
->>>>>>> b42d2c5... Fix codeclimate notices (trailing space)
-                FROM system.schema_columns
-                WHERE keyspace_name ='{}';
->>>>>>> 478a86a... Fix codeclimate notices (SQL)
                 """.format(self.configuration['keyspace'])
 
         results, error = self.run_query(query, None)
