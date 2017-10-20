@@ -198,7 +198,13 @@ class Athena(BaseQueryRunner):
             column_tuples = [(i[0], _TYPE_MAPPINGS.get(i[1], None)) for i in cursor.description]
             columns = self.fetch_columns(column_tuples)
             rows = [dict(zip(([c['name'] for c in columns]), r)) for i, r in enumerate(cursor.fetchall())]
-            data = {'columns': columns, 'rows': rows}
+            qbytes = 'upstream2'
+            try:
+                cursor._poll(cursor.query_id)
+                qbytes = cursor.data_scanned_in_bytes
+            except AttributeError as e:
+                logger.debug("Athena Upstream can't get data_scanned_in_bytes: %s", e)
+            data = {'columns': columns, 'rows': rows, 'data_scanned': qbytes }
             json_data = json.dumps(data, cls=JSONEncoder)
             error = None
         except KeyboardInterrupt:
