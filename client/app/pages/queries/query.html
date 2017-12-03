@@ -98,8 +98,7 @@
                 <span class="zmdi zmdi-format-indent-increase"></span> Format Query
               </button>
 
-              <i class="fa fa-database"></i>
-              <span class="text-muted">Data Source</span>
+              <i class="fa fa-database"></i> &nbsp;
               <select ng-disabled="!isQueryOwner" ng-model="query.data_source_id" ng-change="updateDataSource()"
                       ng-options="ds.id as ds.name for ds in dataSources"></select>
 
