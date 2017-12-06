@@ -20,6 +20,8 @@ export default function (ngModule) {
   registerAlertUnsavedChanges(ngModule);
   registerVisualizationEmbed(ngModule);
   registerCompareQueryDialog(ngModule);
+  # switch to master's auto registration
+  registerApiKeyDialog(ngModule);
   registerGetDataSourceVersion(ngModule);
 
   return Object.assign({}, registerQuerySearchResultsPage(ngModule),
