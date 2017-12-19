@@ -107,6 +107,10 @@
               <span ng-if="dataSource.options.doc_url == '' || !dataSource.options.doc_url">{{ dataSource.type_name }} documentation</span>
               <get-data-source-version id='data-source-version'></get-data-source-version>
 
+              <input type="checkbox" ng-model="editorAutocomplete">
+                Enable Autocomplete
+              </button>
+
               <div class="pull-right">
                 <button class="btn btn-s btn-default" ng-click="togglePublished()" ng-if="query.is_draft && query.id != undefined && (isQueryOwner || currentUser.hasPermission('admin'))">
                   <span class="fa fa-paper-plane"></span> Publish

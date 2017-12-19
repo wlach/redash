@@ -71,6 +71,8 @@ function QuerySourceCtrl(
       .catch(error => toastr.error(error));
   };
 
+  $scope.editorAutocomplete = true;
+
   $scope.duplicateQuery = () => {
     Query.fork({ id: $scope.query.id }, (newQuery) => {
       $location.url(newQuery.getSourceLink()).replace();
