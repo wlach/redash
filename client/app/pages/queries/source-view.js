@@ -71,6 +71,11 @@ function QuerySourceCtrl(
       .catch(error => toastr.error(error));
   };
 
+  $scope.autocompleteQuery = true;
+  $scope.toggleAutocompleteQuery = () => {
+    $scope.autocompleteQuery = !$scope.autocompleteQuery;
+  };
+
   $scope.deleteVisualization = ($e, vis) => {
     $e.preventDefault();
 
