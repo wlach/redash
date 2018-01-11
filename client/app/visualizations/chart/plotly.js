@@ -281,7 +281,7 @@ const PlotlyChart = () => {
 
             each(series.data, (row, rowIdx) => {
               plotlySeries.values.push(row.y);
-              plotlySeries.labels.push(hasX ? row.x.toString().substr(0, xAxisLabelLength)  : `Slice ${index}`);
+              plotlySeries.labels.push(hasX ? row.x.toString().substr(0, xAxisLabelLength) : `Slice ${index}`);
               const rowOpts = scope.options.seriesOptions[hasX ? row.x.toString().substr(0, xAxisLabelLength) : `Slice ${index}`];
               plotlySeries.marker.colors[rowIdx] = rowOpts ? rowOpts.color : getColor(rowIdx);
             });
