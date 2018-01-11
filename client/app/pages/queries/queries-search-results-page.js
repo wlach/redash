@@ -17,6 +17,10 @@ function QuerySearchCtrl($location, $filter, currentUser, Events, Query) {
     this.paginator.updateRows(queries);
   });
 
+  this.createdAtSort = row => row.created_at.valueOf();
+  this.createdBySort = row => row.user.name;
+  this.scheduleSort = row => row.schedule && parseInt(row.schedule, 10);
+
   this.search = () => {
     if (!isString(this.term) || this.term.trim() === '') {
       this.paginator.updateRows([]);
