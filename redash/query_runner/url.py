@@ -15,6 +15,14 @@ class Url(BaseQueryRunner):
                     'type': 'string',
                     'title': 'URL base path'
                 },
+                'username': {
+                    'type': 'string',
+                    'title': 'HTTP username'
+                },
+                'password': {
+                    'type': 'string',
+                    'title': 'HTTP password'
+                },
                 "doc_url": {
                     "type": "string",
                     "title": "Documentation URL",
@@ -51,8 +59,11 @@ class Url(BaseQueryRunner):
                 base_url = ""
 
             url = base_url + query
-
-            response = requests.get(url)
+            auth = None
+            if self.configuration.get("username"):
+                auth = (self.configuration['username'],
+                        self.configuration.get('password', ''))
+            response = requests.get(url, auth=auth)
             response.raise_for_status()
             json_data = response.content.strip()
 
