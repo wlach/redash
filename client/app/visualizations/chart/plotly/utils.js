@@ -200,7 +200,7 @@ function preparePieData(seriesList, options) {
       labels,
       type: 'pie',
       hole: 0.4,
-      marker: { colors: ColorPaletteArray },
+      marker: { colors: colorPalette },
       text: serie.name,
       textposition: 'inside',
       textfont: { color: '#ffffff' },
