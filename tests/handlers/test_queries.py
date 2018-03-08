@@ -233,30 +233,30 @@ class ChangeResourceTests(BaseTestCase):
 class AggregateResultsTests(BaseTestCase):
     def test_aggregate(self):
         qtxt = "SELECT x FROM mytable;"
-        q = self.factory.create_query(query_text=qtxt, schedule_keep_results=3)
+        q = self.factory.create_query(query_text=qtxt, schedule_resultset_size=3)
         qr0 = self.factory.create_query_result(
             query_text=qtxt,
-            data = json.dumps({'columns': ['name', 'color'],
-                               'rows': [{'name': 'eve', 'color': 'grue'},
-                                        {'name': 'mallory', 'color': 'bleen'}]}))
+            data=json.dumps({'columns': ['name', 'color'],
+                             'rows': [{'name': 'eve', 'color': 'grue'},
+                                      {'name': 'mallory', 'color': 'bleen'}]}))
         qr1 = self.factory.create_query_result(
             query_text=qtxt,
-            data = json.dumps({'columns': ['name', 'color'],
-                               'rows': [{'name': 'bob', 'color': 'green'},
-                                        {'name': 'fred', 'color': 'blue'}]}))
+            data=json.dumps({'columns': ['name', 'color'],
+                             'rows': [{'name': 'bob', 'color': 'green'},
+                                      {'name': 'fred', 'color': 'blue'}]}))
         qr2 = self.factory.create_query_result(
             query_text=qtxt,
-            data = json.dumps({'columns': ['name', 'color'],
-                               'rows': [{'name': 'alice', 'color': 'red'},
-                                        {'name': 'eddie', 'color': 'orange'}]}))
+            data=json.dumps({'columns': ['name', 'color'],
+                             'rows': [{'name': 'alice', 'color': 'red'},
+                                      {'name': 'eddie', 'color': 'orange'}]}))
         qr3 = self.factory.create_query_result(
             query_text=qtxt,
-            data = json.dumps({'columns': ['name', 'color'],
-                               'rows': [{'name': 'dave', 'color': 'yellow'},
-                                        {'name': 'carol', 'color': 'taupe'}]}))
+            data=json.dumps({'columns': ['name', 'color'],
+                             'rows': [{'name': 'dave', 'color': 'yellow'},
+                                      {'name': 'carol', 'color': 'taupe'}]}))
         for qr in (qr0, qr1, qr2, qr3):
             self.factory.create_query_resultset(query_rel=q, result=qr)
-        rv = self.make_request('get', '/api/queries/{}/aggregate_results'.format(q.id))
+        rv = self.make_request('get', '/api/queries/{}/resultset'.format(q.id))
         self.assertEqual(rv.status_code, 200)
         self.assertEqual(rv.json['query_result']['data'],
                          {'columns': ['name', 'color'],
@@ -271,20 +271,21 @@ class AggregateResultsTests(BaseTestCase):
 
     def test_underfilled_aggregate(self):
         qtxt = "SELECT x FROM mytable;"
-        q = self.factory.create_query(query_text=qtxt, schedule_keep_results=3)
+        q = self.factory.create_query(query_text=qtxt,
+                                      schedule_resultset_size=3)
         qr1 = self.factory.create_query_result(
             query_text=qtxt,
-            data = json.dumps({'columns': ['name', 'color'],
-                               'rows': [{'name': 'bob', 'color': 'green'},
-                                        {'name': 'fred', 'color': 'blue'}]}))
+            data=json.dumps({'columns': ['name', 'color'],
+                             'rows': [{'name': 'bob', 'color': 'green'},
+                                      {'name': 'fred', 'color': 'blue'}]}))
         qr2 = self.factory.create_query_result(
             query_text=qtxt,
-            data = json.dumps({'columns': ['name', 'color'],
-                               'rows': [{'name': 'alice', 'color': 'red'},
-                                        {'name': 'eddie', 'color': 'orange'}]}))
+            data=json.dumps({'columns': ['name', 'color'],
+                             'rows': [{'name': 'alice', 'color': 'red'},
+                                      {'name': 'eddie', 'color': 'orange'}]}))
         for qr in (qr1, qr2):
             self.factory.create_query_resultset(query_rel=q, result=qr)
-        rv = self.make_request('get', '/api/queries/{}/aggregate_results'.format(q.id))
+        rv = self.make_request('get', '/api/queries/{}/resultset'.format(q.id))
         self.assertEqual(rv.status_code, 200)
         self.assertEqual(rv.json['query_result']['data'],
                          {'columns': ['name', 'color'],
@@ -298,10 +299,10 @@ class AggregateResultsTests(BaseTestCase):
     def test_no_aggregate(self):
         qtxt = "SELECT x FROM mytable;"
         q = self.factory.create_query(query_text=qtxt)
-        qr0 = self.factory.create_query_result(
+        self.factory.create_query_result(
             query_text=qtxt,
-            data = json.dumps({'columns': ['name', 'color'],
-                               'rows': [{'name': 'eve', 'color': 'grue'},
-                                        {'name': 'mallory', 'color': 'bleen'}]}))
-        rv = self.make_request('get', '/api/queries/{}/aggregate_results'.format(q.id))
+            data=json.dumps({'columns': ['name', 'color'],
+                             'rows': [{'name': 'eve', 'color': 'grue'},
+                                      {'name': 'mallory', 'color': 'bleen'}]}))
+        rv = self.make_request('get', '/api/queries/{}/resultset'.format(q.id))
         self.assertEqual(rv.status_code, 404)

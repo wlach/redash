@@ -136,12 +136,12 @@ class QueryResultSetResource(BaseResource):
     @require_permission('view_query')
     def get(self, query_id=None, filetype='json'):
         query = get_object_or_404(models.Query.get_by_id_and_org, query_id, self.current_org)
-        if not query.schedule_keep_results:
+        if not query.schedule_resultset_size:
             abort(404, message="query does not keep multiple results")
 
         # Synthesize a result set from the last N results.
         total = len(query.query_results)
-        offset = max(total - query.schedule_keep_results, 0)
+        offset = max(total - query.schedule_resultset_size, 0)
         results = [qr.to_dict() for qr in query.query_results[offset:offset + total]]
         if not results:
             aggregate_result = {}

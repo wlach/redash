@@ -358,7 +358,7 @@ class TestUnusedQueryResults(BaseTestCase):
         qrs = [self.factory.create_query_result(query_text=qt, retrieved_at=two_weeks_ago)
                for _ in range(5)]
         q = self.factory.create_query(query_text=qt, latest_query_data=qrs[0],
-                                      schedule_keep_results=3)
+                                      schedule_resultset_size=3)
         for qr in qrs:
             self.factory.create_query_resultset(query_rel=q, result=qr)
         db.session.flush()
@@ -366,11 +366,13 @@ class TestUnusedQueryResults(BaseTestCase):
 
     def test_deletes_stale_resultsets(self):
         qt = "SELECT 17"
-        query = self.factory.create_query(query_text=qt, schedule_keep_results=5)
+        query = self.factory.create_query(query_text=qt,
+                                          schedule_resultset_size=5)
         for _ in range(10):
             r = self.factory.create_query_result(query_text=qt)
             self.factory.create_query_resultset(query_rel=query, result=r)
-        query2 = self.factory.create_query(query_text=qt, schedule_keep_results=3)
+        query2 = self.factory.create_query(query_text=qt,
+                                           schedule_resultset_size=3)
         for _ in range(10):
             self.factory.create_query_result(query_text=qt)
             self.factory.create_query_resultset(query_rel=query2)
@@ -494,7 +496,6 @@ class TestQueryResultStoreResult(BaseTestCase):
         self.assertEqual(query1.latest_query_data, query_result)
         self.assertEqual(query2.latest_query_data, query_result)
         self.assertNotEqual(query3.latest_query_data, query_result)
-
 
 
 class TestEvents(BaseTestCase):

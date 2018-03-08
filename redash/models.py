@@ -773,8 +773,7 @@ class QueryResult(db.Model, BelongsToOrgMixin):
         for q in queries:
             q.latest_query_data = query_result
             db.session.add(q)
-            if q.schedule_keep_results > 0:
-
+            if q.schedule_resultset_size > 0:
                 q.query_results.append(query_result)
         query_ids = [q.id for q in queries]
         logging.info("Updated %s queries with result (%s).", len(query_ids), query_hash)
@@ -871,7 +870,7 @@ class Query(ChangeTrackingMixin, TimestampMixin, BelongsToOrgMixin, db.Model):
     schedule = Column(db.String(10), nullable=True)
     schedule_failures = Column(db.Integer, default=0)
     schedule_until = Column(db.DateTime(True), nullable=True)
-    schedule_keep_results = Column(db.Integer, nullable=True)
+    schedule_resultset_size = Column(db.Integer, nullable=True)
     visualizations = db.relationship("Visualization", cascade="all, delete-orphan")
     options = Column(MutableDict.as_mutable(PseudoJSON), default={})
     search_vector = Column(TSVectorType('id', 'name', 'description', 'query',
@@ -898,7 +897,7 @@ class Query(ChangeTrackingMixin, TimestampMixin, BelongsToOrgMixin, db.Model):
             'query_hash': self.query_hash,
             'schedule': self.schedule,
             'schedule_until': self.schedule_until,
-            'schedule_keep_results': self.schedule_keep_results,
+            'schedule_resultset_size': self.schedule_resultset_size,
             'api_key': self.api_key,
             'is_archived': self.is_archived,
             'is_draft': self.is_draft,
@@ -1010,23 +1009,26 @@ class Query(ChangeTrackingMixin, TimestampMixin, BelongsToOrgMixin, db.Model):
     @classmethod
     def delete_stale_resultsets(cls):
         delete_count = 0
-        queries = Query.query.filter(Query.schedule_keep_results != None).order_by(Query.schedule_keep_results.desc())
-        if queries.first() and queries[0].schedule_keep_results:
-            resultsets = QueryResultSet.query.filter(QueryResultSet.query_rel == queries[0]).order_by(QueryResultSet.result_id)
-            c = resultsets.count()
-            if c > queries[0].schedule_keep_results:
-                n_to_delete = c - queries[0].schedule_keep_results
+        queries = Query.query.filter(Query.schedule_resultset_size != None).order_by(Query.schedule_resultset_size.desc())
+        # Multiple queries with the same text may request multiple result sets
+        # be kept. We start with the one that keeps the most, and delete both
+        # the unneeded bridge rows and result sets.
+        first_query = queries.first()
+        if first_query is not None and queries[0].schedule_resultset_size:
+            resultsets = QueryResultSet.query.filter(QueryResultSet.query_rel == first_query).order_by(QueryResultSet.result_id)
+            resultset_count = resultsets.count()
+            if resultset_count > queries[0].schedule_resultset_size:
+                n_to_delete = resultset_count - queries[0].schedule_resultset_size
                 r_ids = [r.result_id for r in resultsets][:n_to_delete]
                 delete_count = QueryResultSet.query.filter(QueryResultSet.result_id.in_(r_ids)).delete(synchronize_session=False)
-                print "one", delete_count
                 QueryResult.query.filter(QueryResult.id.in_(r_ids)).delete(synchronize_session=False)
+        # Delete unneeded bridge rows for the remaining queries.
         for q in queries[1:]:
             resultsets = db.session.query(QueryResultSet.result_id).filter(QueryResultSet.query_rel == q).order_by(QueryResultSet.result_id)
-            n_to_delete = resultsets.count() - q.schedule_keep_results
+            n_to_delete = resultsets.count() - q.schedule_resultset_size
             if n_to_delete > 0:
                 stale_r = QueryResultSet.query.filter(QueryResultSet.result_id.in_(resultsets.limit(n_to_delete).subquery()))
                 n = stale_r.delete(synchronize_session=False)
-                print "n", n
                 delete_count += n
         return delete_count
 

@@ -108,7 +108,7 @@ function scheduleKeepResults() {
       query: '=',
       saveQuery: '=',
     },
-    template: '<input type="number" class="form-control" ng-model="query.schedule_keep_results" ng-change="saveQuery()">',
+    template: '<input type="number" class="form-control" ng-model="query.schedule_resultset_size" ng-change="saveQuery()">',
   };
 }
 
@@ -116,7 +116,6 @@ const ScheduleForm = {
   controller() {
     this.query = this.resolve.query;
     this.saveQuery = this.resolve.saveQuery;
-    this.isIncremental = false;
     if (this.query.hasDailySchedule()) {
       this.refreshType = 'daily';
     } else {

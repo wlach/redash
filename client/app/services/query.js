@@ -298,9 +298,9 @@ function QueryResource($resource, $http, $q, $location, currentUser, QueryResult
       this.latest_query_data_id = null;
     }
 
-    if (this.schedule_keep_results) {
+    if (this.schedule_resultset_size) {
       if (!this.queryResult) {
-        this.queryResult = QueryResult.getAggregate(this.id);
+        this.queryResult = QueryResult.getResultSet(this.id);
       }
     } else if (this.latest_query_data && maxAge !== 0) {
       if (!this.queryResult) {

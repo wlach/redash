@@ -54,7 +54,7 @@ function addPointToSeries(point, seriesCollection, seriesName) {
 
 function QueryResultService($resource, $timeout, $q) {
   const QueryResultResource = $resource('api/query_results/:id', { id: '@id' }, { post: { method: 'POST' } });
-  const QueryAggregateResultResource = $resource('api/queries/:id/aggregate_results', { id: '@id' });
+  const QueryResultSetResource = $resource('api/queries/:id/resultset', { id: '@id' });
   const Job = $resource('api/jobs/:id', { id: '@id' });
   const statuses = {
     1: 'waiting',
@@ -422,10 +422,10 @@ function QueryResultService($resource, $timeout, $q) {
       return queryResult;
     }
 
-    static getAggregate(queryId) {
+    static getResultSet(queryId) {
       const queryResult = new QueryResult();
 
-      QueryAggregateResultResource.get({ id: queryId }, (response) => {
+      QueryResultSetResource.get({ id: queryId }, (response) => {
         queryResult.update(response);
       });
 
