@@ -159,8 +159,10 @@ class DashboardResource(BaseResource):
         try:
             models.db.session.commit()
         except StaleDataError:
+            models.db.session.rollback()
             abort(409)
         except IntegrityError:
+            models.db.session.rollback()
             abort(400)
 
         result = dashboard.to_dict(with_widgets=True, user=self.current_user)
