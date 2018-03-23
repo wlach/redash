@@ -142,13 +142,15 @@ class QueryResultSetResource(BaseResource):
         # Synthesize a result set from the last N results.
         total = len(query.query_results)
         offset = max(total - query.schedule_resultset_size, 0)
-        results = [qr.to_dict() for qr in query.query_results[offset:offset + total]]
+        results = [qr.to_dict() for qr in query.query_results[offset:]]
         if not results:
             aggregate_result = {}
         else:
+            # Start a synthetic data set with the data from the first result...
             aggregate_result = results[0].copy()
             aggregate_result['data'] = {'columns': results[0]['data']['columns'],
                                         'rows': []}
+            # .. then add each subsequent result set into it.
             for r in results:
                 aggregate_result['data']['rows'].extend(r['data']['rows'])
 

@@ -1014,11 +1014,11 @@ class Query(ChangeTrackingMixin, TimestampMixin, BelongsToOrgMixin, db.Model):
         # be kept. We start with the one that keeps the most, and delete both
         # the unneeded bridge rows and result sets.
         first_query = queries.first()
-        if first_query is not None and queries[0].schedule_resultset_size:
+        if first_query is not None and first_query.schedule_resultset_size:
             resultsets = QueryResultSet.query.filter(QueryResultSet.query_rel == first_query).order_by(QueryResultSet.result_id)
             resultset_count = resultsets.count()
-            if resultset_count > queries[0].schedule_resultset_size:
-                n_to_delete = resultset_count - queries[0].schedule_resultset_size
+            if resultset_count > first_query.schedule_resultset_size:
+                n_to_delete = resultset_count - first_query.schedule_resultset_size
                 r_ids = [r.result_id for r in resultsets][:n_to_delete]
                 delete_count = QueryResultSet.query.filter(QueryResultSet.result_id.in_(r_ids)).delete(synchronize_session=False)
                 QueryResult.query.filter(QueryResult.id.in_(r_ids)).delete(synchronize_session=False)
