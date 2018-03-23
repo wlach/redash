@@ -1020,16 +1020,16 @@ class Query(ChangeTrackingMixin, TimestampMixin, BelongsToOrgMixin, db.Model):
             if resultset_count > first_query.schedule_resultset_size:
                 n_to_delete = resultset_count - first_query.schedule_resultset_size
                 r_ids = [r.result_id for r in resultsets][:n_to_delete]
-                delete_count = QueryResultSet.query.filter(QueryResultSet.result_id.in_(r_ids)).delete(synchronize_session=False)
-                QueryResult.query.filter(QueryResult.id.in_(r_ids)).delete(synchronize_session=False)
+                QueryResultSet.query.filter(QueryResultSet.result_id.in_(r_ids)).delete(synchronize_session=False)
+                delete_count += QueryResult.query.filter(QueryResult.id.in_(r_ids)).delete(synchronize_session=False)
+        # By this point there are no stale result sets left.
         # Delete unneeded bridge rows for the remaining queries.
         for q in queries[1:]:
             resultsets = db.session.query(QueryResultSet.result_id).filter(QueryResultSet.query_rel == q).order_by(QueryResultSet.result_id)
             n_to_delete = resultsets.count() - q.schedule_resultset_size
             if n_to_delete > 0:
                 stale_r = QueryResultSet.query.filter(QueryResultSet.result_id.in_(resultsets.limit(n_to_delete).subquery()))
-                n = stale_r.delete(synchronize_session=False)
-                delete_count += n
+                stale_r.delete(synchronize_session=False)
         return delete_count
 
     @classmethod
