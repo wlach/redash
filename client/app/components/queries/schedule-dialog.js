@@ -108,7 +108,7 @@ function scheduleKeepResults() {
       query: '=',
       saveQuery: '=',
     },
-    template: '<input type="number" class="form-control" ng-model="query.schedule_resultset_size" ng-change="saveQuery()">',
+    template: '<input type="number" class="form-control" ng-model="query.schedule_resultset_size" ng-change="saveQuery()" ng-disabled="!query.schedule">',
   };
 }
 
