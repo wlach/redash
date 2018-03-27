@@ -1009,27 +1009,32 @@ class Query(ChangeTrackingMixin, TimestampMixin, BelongsToOrgMixin, db.Model):
     @classmethod
     def delete_stale_resultsets(cls):
         delete_count = 0
-        queries = Query.query.filter(Query.schedule_resultset_size != None).order_by(Query.schedule_resultset_size.desc())
-        # Multiple queries with the same text may request multiple result sets
-        # be kept. We start with the one that keeps the most, and delete both
-        # the unneeded bridge rows and result sets.
-        first_query = queries.first()
-        if first_query is not None and first_query.schedule_resultset_size:
-            resultsets = QueryResultSet.query.filter(QueryResultSet.query_rel == first_query).order_by(QueryResultSet.result_id)
-            resultset_count = resultsets.count()
-            if resultset_count > first_query.schedule_resultset_size:
-                n_to_delete = resultset_count - first_query.schedule_resultset_size
-                r_ids = [r.result_id for r in resultsets][:n_to_delete]
-                QueryResultSet.query.filter(QueryResultSet.result_id.in_(r_ids)).delete(synchronize_session=False)
-                delete_count += QueryResult.query.filter(QueryResult.id.in_(r_ids)).delete(synchronize_session=False)
-        # By this point there are no stale result sets left.
-        # Delete unneeded bridge rows for the remaining queries.
-        for q in queries[1:]:
-            resultsets = db.session.query(QueryResultSet.result_id).filter(QueryResultSet.query_rel == q).order_by(QueryResultSet.result_id)
-            n_to_delete = resultsets.count() - q.schedule_resultset_size
-            if n_to_delete > 0:
-                stale_r = QueryResultSet.query.filter(QueryResultSet.result_id.in_(resultsets.limit(n_to_delete).subquery()))
-                stale_r.delete(synchronize_session=False)
+        texts = [c[0] for c in db.session.query(Query.query_text)
+                 .filter(Query.schedule_resultset_size != None).distinct()]
+        for text in texts:
+            queries = (Query.query.filter(Query.query_text == text,
+                                          Query.schedule_resultset_size != None)
+                       .order_by(Query.schedule_resultset_size.desc()))
+            # Multiple queries with the same text may request multiple result sets
+            # be kept. We start with the one that keeps the most, and delete both
+            # the unneeded bridge rows and result sets.
+            first_query = queries.first()
+            if first_query is not None and first_query.schedule_resultset_size:
+                resultsets = QueryResultSet.query.filter(QueryResultSet.query_rel == first_query).order_by(QueryResultSet.result_id)
+                resultset_count = resultsets.count()
+                if resultset_count > first_query.schedule_resultset_size:
+                    n_to_delete = resultset_count - first_query.schedule_resultset_size
+                    r_ids = [r.result_id for r in resultsets][:n_to_delete]
+                    QueryResultSet.query.filter(QueryResultSet.result_id.in_(r_ids)).delete(synchronize_session=False)
+                    delete_count += QueryResult.query.filter(QueryResult.id.in_(r_ids)).delete(synchronize_session=False)
+            # By this point there are no stale result sets left.
+            # Delete unneeded bridge rows for the remaining queries.
+            for q in queries[1:]:
+                resultsets = db.session.query(QueryResultSet.result_id).filter(QueryResultSet.query_rel == q).order_by(QueryResultSet.result_id)
+                n_to_delete = resultsets.count() - q.schedule_resultset_size
+                if n_to_delete > 0:
+                    stale_r = QueryResultSet.query.filter(QueryResultSet.result_id.in_(resultsets.limit(n_to_delete).subquery()))
+                    stale_r.delete(synchronize_session=False)
         return delete_count
 
     @classmethod

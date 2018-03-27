@@ -371,14 +371,37 @@ class TestUnusedQueryResults(BaseTestCase):
         for _ in range(10):
             r = self.factory.create_query_result(query_text=qt)
             self.factory.create_query_resultset(query_rel=query, result=r)
+        qt2 = "SELECT 100"
+        query2 = self.factory.create_query(query_text=qt2, schedule_resultset_size=5)
+        for _ in range(10):
+            r = self.factory.create_query_result(query_text=qt2)
+            self.factory.create_query_resultset(query_rel=query2, result=r)
+        db.session.flush()
+        self.assertEqual(models.QueryResultSet.query.count(), 20)
+        self.assertEqual(models.Query.delete_stale_resultsets(), 10)
+        self.assertEqual(models.QueryResultSet.query.count(), 10)
+
+    def test_deletes_stale_resultsets_with_dupe_queries(self):
+        qt = "SELECT 17"
+        query = self.factory.create_query(query_text=qt,
+                                          schedule_resultset_size=5)
+        for _ in range(10):
+            r = self.factory.create_query_result(query_text=qt)
+            self.factory.create_query_resultset(query_rel=query, result=r)
         query2 = self.factory.create_query(query_text=qt,
                                            schedule_resultset_size=3)
         for _ in range(10):
             self.factory.create_query_result(query_text=qt)
             self.factory.create_query_resultset(query_rel=query2)
+        qt2 = "SELECT 100"
+        query3 = self.factory.create_query(query_text=qt2, schedule_resultset_size=5)
+        for _ in range(10):
+            r = self.factory.create_query_result(query_text=qt2)
+            self.factory.create_query_resultset(query_rel=query3, result=r)
         db.session.flush()
-        self.assertEqual(models.Query.delete_stale_resultsets(), 5)
-        self.assertEqual(models.QueryResultSet.query.count(), 8)
+        self.assertEqual(models.QueryResultSet.query.count(), 30)
+        self.assertEqual(models.Query.delete_stale_resultsets(), 10)
+        self.assertEqual(models.QueryResultSet.query.count(), 13)
 
 
 class TestQueryAll(BaseTestCase):
