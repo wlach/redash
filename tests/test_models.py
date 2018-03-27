@@ -377,7 +377,7 @@ class TestUnusedQueryResults(BaseTestCase):
             self.factory.create_query_result(query_text=qt)
             self.factory.create_query_resultset(query_rel=query2)
         db.session.flush()
-        self.assertEqual(models.Query.delete_stale_resultsets(), 12)
+        self.assertEqual(models.Query.delete_stale_resultsets(), 5)
         self.assertEqual(models.QueryResultSet.query.count(), 8)
 
 
