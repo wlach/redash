@@ -192,6 +192,7 @@ function QueryViewCtrl(
     } else {
       request = pick($scope.query, [
         'schedule',
+        'schedule_resultset_size',
         'query',
         'id',
         'description',
