@@ -19,7 +19,7 @@
   </div>
 
   <div class="schema-browser" vs-repeat vs-size="$ctrl.getSize(table)">
-    <div ng-repeat="table in $ctrl.schema | filter:$ctrl.schemaFilter | filter:'!'+$ctrl.versionFilter">
+    <div ng-repeat="table in $ctrl.schema | filter:$ctrl.schemaFilter | filter: {name: '!'+$ctrl.versionFilter}">
       <div class="table-name" ng-click="$ctrl.showTable(table)">
         <i class="fa fa-table"></i>
         <strong>
