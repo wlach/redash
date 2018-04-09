@@ -336,7 +336,7 @@ class TestUnusedQueryResults(BaseTestCase):
     def test_returns_only_unused_query_results(self):
         two_weeks_ago = utcnow() - datetime.timedelta(days=14)
         qt = "SELECT 1"
-        qr = self.factory.create_query_result(query_text=qt)
+        qr = self.factory.create_query_result(query_text=qt, retrieved_at=two_weeks_ago)
         query = self.factory.create_query(query_text=qt, latest_query_data=qr)
         unused_qr = self.factory.create_query_result(query_text=qt, retrieved_at=two_weeks_ago)
         db.session.flush()

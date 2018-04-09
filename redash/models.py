@@ -732,7 +732,9 @@ class QueryResult(db.Model, BelongsToOrgMixin):
 
         unused_results = db.session.query(QueryResult.id).filter(
             QueryResult.retrieved_at < age_threshold,
-            ~QueryResultSet.query.filter(QueryResultSet.result_id == QueryResult.id).exists())
+            Query.id == None,
+            ~QueryResultSet.query.filter(QueryResultSet.result_id == QueryResult.id).exists()
+        ).outerjoin(Query)
 
         return unused_results
 
