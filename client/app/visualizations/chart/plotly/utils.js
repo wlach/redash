@@ -418,7 +418,6 @@ function updateSeriesText(seriesList, options) {
           text = `${formatPercent(Math.abs(item.yPercent))}% (${text})`;
         }
       }
-
       series.text.push(text);
     });
   });
