@@ -395,17 +395,22 @@ export function prepareLayout(element, seriesList, options, data) {
 function updateSeriesText(seriesList, options) {
   each(seriesList, (series) => {
     series.text = [];
-    series.sourceData.forEach((item) => {
-      let text = formatNumber(item.y);
-      if (item.yError !== undefined) {
-        text = `${text} \u00B1 ${formatNumber(item.yError)}`;
-      }
+    series.x.forEach((xvalue) => {
+      const item = series.sourceData.get(xvalue);
+      if (item !== undefined) {
+        let text = formatNumber(item.y);
+        if (item.yError !== undefined) {
+          text = `${text} \u00B1 ${formatNumber(item.yError)}`;
+        }
 
-      if (options.series.percentValues) {
-        text = `${formatPercent(Math.abs(item.yPercent))}% (${text})`;
-      }
+        if (options.series.percentValues) {
+          text = `${formatPercent(Math.abs(item.yPercent))}% (${text})`;
+        }
 
-      series.text.push(text);
+        series.text.push(text);
+      } else {
+        series.text.push(null);
+      }
     });
   });
   return seriesList;
