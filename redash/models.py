@@ -25,12 +25,13 @@ from redash.utils import generate_token, json_dumps
 from redash.utils.comparators import CaseInsensitiveComparator
 from redash.utils.configuration import ConfigurationContainer
 from redash.settings.organization import settings as org_settings
-from sqlalchemy import distinct, exists, or_
+from sqlalchemy import distinct, func, or_
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.event import listens_for
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.ext.mutable import Mutable
 from sqlalchemy.inspection import inspect
-from sqlalchemy.orm import backref, joinedload, object_session
+from sqlalchemy.orm import backref, joinedload, object_session, contains_eager
 from sqlalchemy.orm.exc import NoResultFound  # noqa: F401
 from sqlalchemy.types import TypeDecorator
 from sqlalchemy.orm.attributes import flag_modified
@@ -970,6 +971,13 @@ class Query(ChangeTrackingMixin, TimestampMixin, BelongsToOrgMixin, db.Model):
                 .options(joinedload(Query.user),
                          joinedload(Query.latest_query_data).load_only('runtime', 'retrieved_at'))
                 .filter(cls.id.in_(query_ids))
+                # Adding outer joins to be able to order by relationship
+                .outerjoin(User, User.id == Query.user_id)
+                .outerjoin(QueryResult, QueryResult.id == Query.latest_query_data_id)
+                .options(
+                    contains_eager(Query.user),
+                    contains_eager(Query.latest_query_data),
+                )
                 .order_by(Query.created_at.desc()))
 
         if not drafts:
