@@ -1,6 +1,6 @@
 import {
-  some, extend, has, partial, intersection, without, contains, isUndefined,
-  sortBy, each, pluck, keys, difference,
+  some, extend, has, partial, intersection, without, includes, isUndefined,
+  sortBy, each, map, keys, difference,
 } from 'lodash';
 import template from './chart.html';
 import editorTemplate from './chart-editor.html';
