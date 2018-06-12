@@ -258,7 +258,8 @@ function prepareChartData(seriesList, options) {
 
     const plotlySeries = {
       visible: true,
-      hoverinfo: 'x+text+name',
+      hoverinfo: 'x+text',
+      hovertext: seriesOptions.name || series.name,
       x: xValues,
       y: yValues,
       error_y: {
