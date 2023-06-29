@@ -219,7 +219,9 @@ describe("Parameter", () => {
           };
 
           cy.visit(`/queries/${dropdownQuery.id}`);
-          cy.getByTestId("ExecuteButton").click();
+          cy.getByTestId("ExecuteButton")
+            .should("be.enabled")
+            .click();
           cy.getByTestId("TableVisualization")
             .should("contain", "value1")
             .and("contain", "value2")
@@ -308,7 +310,9 @@ describe("Parameter", () => {
     it("updates the results after selecting a date", function() {
       selectCalendarDate("15");
 
-      cy.getByTestId("ParameterApplyButton").click();
+      cy.getByTestId("ParameterApplyButton")
+        .should("be.enabled")
+        .click();
 
       cy.getByTestId("TableVisualization").should("contain", Cypress.moment(this.now).format("15/MM/YY"));
     });
